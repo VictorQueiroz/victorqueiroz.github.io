@@ -1,0 +1,700 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title><![CDATA[Victor Queiroz]]></title>
+  
+  <link href="/atom.xml" rel="self"/>
+  <link href="http://victorqueiroz.github.io/"/>
+  <updated>2016-01-22T09:48:04.363Z</updated>
+  <id>http://victorqueiroz.github.io/</id>
+  
+  <author>
+    <name><![CDATA[Victor Queiroz]]></name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title><![CDATA[MongoDB: Como utilizar o MongoDB como um servidor de imagens]]></title>
+    <link href="http://victorqueiroz.github.io/2016/01/22/MongoDB-Como-utilizar-o-MongoDB-como-um-servidor-de-imagens/"/>
+    <id>http://victorqueiroz.github.io/2016/01/22/MongoDB-Como-utilizar-o-MongoDB-como-um-servidor-de-imagens/</id>
+    <published>2016-01-22T09:01:15.000Z</published>
+    <updated>2016-01-22T09:48:04.363Z</updated>
+    <content type="html"><![CDATA[<p>Primeiramente nós devemos saber que essa nem sempre pode ser a melhor alternativa, ainda podemos utilizar o serviço S3 da Amazon, este guia serve apenas como uma alternativa interessante a se pensar.</p>
+<p>Neste exemplo estaremos utilizando:</p>
+<ul>
+<li>Express 4.x</li>
+<li>NodeJS 5.x</li>
+</ul>
+<h2 id="Armazenando_a_imagem_no_banco"><a href="#Armazenando_a_imagem_no_banco" class="headerlink" title="Armazenando a imagem no banco"></a>Armazenando a imagem no banco</h2><p>No exemplo abaixo, nós temos um serviço que recebe a imagem em <code>base64</code>, transforma em binário e salva no banco:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> GridStore = <span class="built_in">require</span>(<span class="string">'mongodb'</span>).GridStore;</span><br><span class="line"><span class="keyword">var</span> randomstring = <span class="built_in">require</span>(<span class="string">'randomstring'</span>).generate;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Expressão regular que será utilizada para remover</span></span><br><span class="line"><span class="comment">// o data:image/<span class="label">XXX que não faz de fato parte do código</span></span></span><br><span class="line"><span class="comment">// base64</span></span><br><span class="line"><span class="keyword">var</span> BASE64_REGEX = <span class="regexp">/^data:image\/png;base64,|^data:image\/jpeg;base64,|^data:image\/jpg;base64,|^data:image\/bmp;base64,/</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> FileManager = &#123;</span><br><span class="line">	nextFileId: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="string">`<span class="subst">$&#123;randomstring(4)&#125;</span>_<span class="subst">$&#123;randomstring(8)&#125;</span>_<span class="subst">$&#123;randomstring(6)&#125;</span>`</span>;</span><br><span class="line">	&#125;,</span><br><span class="line"></span><br><span class="line">	upload: <span class="function"><span class="keyword">function</span>(<span class="params">data, encoding, fileId</span>) </span>&#123;</span><br><span class="line">		fileId = fileId || <span class="keyword">this</span>.nextFileId();</span><br><span class="line"></span><br><span class="line">		<span class="keyword">var</span> buf = <span class="keyword">new</span> Buffer(data, encoding),</span><br><span class="line">				gridStore = <span class="keyword">new</span> GridStore(db, fileId, <span class="string">'w'</span>);</span><br><span class="line"></span><br><span class="line">		<span class="keyword">return</span> gridStore.open().then(<span class="function"><span class="keyword">function</span>(<span class="params">gridStore</span>) </span>&#123;</span><br><span class="line">			<span class="keyword">return</span> gridStore.write(buf);</span><br><span class="line">		&#125;)</span><br><span class="line">		.then(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">			<span class="keyword">return</span> gridStore.close();</span><br><span class="line">		&#125;)</span><br><span class="line">		.then(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">			<span class="keyword">return</span> fileId;</span><br><span class="line">		&#125;);</span><br><span class="line">	&#125;,</span><br><span class="line"></span><br><span class="line">	uploadImage: <span class="function"><span class="keyword">function</span>(<span class="params">data</span>) </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">this</span>.upload(data.replace(BASE64_REGEX), <span class="string">'base64'</span>);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> fs = <span class="built_in">require</span>(<span class="string">'fs'</span>);</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">storeFileId</span> (<span class="params">fileId</span>) </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> db.collection(<span class="string">'images'</span>).insertOne(&#123; fileId: fileId &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">FileManager.uploadImage(fs.readFileSync(<span class="string">'./images/angularjs-vs-react-who-is-the-winner.jpg'</span>))</span><br><span class="line">.then(storeFileId);</span><br></pre></td></tr></table></figure>
+<h3 id="Criando_a_inst_E2ncia_do_GridStore"><a href="#Criando_a_inst_E2ncia_do_GridStore" class="headerlink" title="Criando a instância do GridStore"></a>Criando a instância do GridStore</h3><p>No primeiro parâmetro nós passamos a ligação para a conexão com o banco de dados (que você receberá logo após um <code>require(&#39;mongodb&#39;).MongoClient.connect()</code>), no segundo parâmetro nós definimos o nome do arquivo e por último nós definimos o que vamos fazer nesse documento, no nosso caso, vamos ler. Portanto <code>w</code> que vem de <code>write</code> :)</p>
+<h3 id="Gerando_o_nome_do_arquivo"><a href="#Gerando_o_nome_do_arquivo" class="headerlink" title="Gerando o nome do arquivo"></a>Gerando o nome do arquivo</h3><p>Você pode notar na <code>linha 13</code> do exemplo acima que o nome do arquivo que vamos guardar é criado pela função anônima na propriedade <code>nextFileId</code> do <code>FileManager</code>. Ele retorna algo como:</p>
+<figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">c<span class="number">9</span>R<span class="number">9</span>_B<span class="number">7</span>xgEVxQ_u<span class="number">7</span><span class="label">nOX9</span></span><br></pre></td></tr></table></figure>
+<p>É apenas para termos certeza de que nenhum arquivo fique com nomes iguais e que possamos colocar isso numa url sem que fique na cara que utilizamos MongoDB:</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http<span class="variable">s:</span>//api.dominio.<span class="keyword">com</span>.<span class="keyword">br</span>/images/c9R9_B7xgEVxQ_u7nOX9.png</span><br></pre></td></tr></table></figure>
+<p>Mas nada te impede de usar um <code>ObjectId</code>, we’re talking about Mongo, right? :)</p>
+<h3 id="Escrevendo_no_arquivo"><a href="#Escrevendo_no_arquivo" class="headerlink" title="Escrevendo no arquivo"></a>Escrevendo no arquivo</h3><p>Na <code>linha 19</code> nós armazenamos os dados da imagem na instância, mas caso você não execute o <code>gridStore.close()</code> como na <code>linha 22</code>, ele não será salvo no banco e ficará apenas na instância. Então é sempre importante executar um <code>gridStore.close()</code> após o <code>gridStore.write()</code>. O parâmetro que colocamos em <code>write()</code> pode ser um <code>Buffer</code> ou uma <code>String</code></p>
+<h2 id="Lendo_a_imagem_previamente_armazenada"><a href="#Lendo_a_imagem_previamente_armazenada" class="headerlink" title="Lendo a imagem previamente armazenada"></a>Lendo a imagem previamente armazenada</h2><p>Para acessarmos a imagem que salvamos, vamos precisar de utilizar novamente a classe GridStore, só que dessa vez não precisaremos criar outra instância, mas definitivamente vamos precisar do id do arquivo que armazenamos, portanto é importante que você saiba que é necessário guardar a identificação do arquivo para que você possa acessá-la futuramente.</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> Q = <span class="built_in">require</span>(<span class="string">'q'</span>),</span><br><span class="line">		GridStore = <span class="built_in">require</span>(<span class="string">'mongodb'</span>).GridStore;</span><br><span class="line"></span><br><span class="line">FileManager.get = <span class="function"><span class="keyword">function</span>(<span class="params">id</span>) </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> GridStore.exists(db, id).then(<span class="function"><span class="keyword">function</span>(<span class="params">result</span>) </span>&#123;</span><br><span class="line">		<span class="keyword">if</span>(result) &#123;</span><br><span class="line">			<span class="keyword">return</span> GridStore.read(db, id);</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">return</span> Q.reject(<span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'File does not exists'</span>));</span><br><span class="line">	&#125;);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AlbumController</span> </span>&#123;</span><br><span class="line">	getUserAlbum(req) &#123;</span><br><span class="line">		<span class="keyword">return</span> db.collection(<span class="string">'users'</span>).findOne(&#123;</span><br><span class="line">			_id: ObjectId(req.params.userId)</span><br><span class="line">		&#125;)</span><br><span class="line">		.then(<span class="function"><span class="keyword">function</span>(<span class="params">user</span>) </span>&#123;</span><br><span class="line">			<span class="keyword">var</span> userId = user._id.toString();</span><br><span class="line"></span><br><span class="line">			<span class="keyword">return</span> db.collection(<span class="string">'albums'</span>).findOne(&#123; userId: userId &#125;);</span><br><span class="line">		&#125;)</span><br><span class="line">		.then(<span class="function"><span class="keyword">function</span>(<span class="params">album</span>) </span>&#123;</span><br><span class="line">			<span class="keyword">return</span> albums &amp;&amp; album.images &amp;&amp; Q.all(album.images.forEach(<span class="function"><span class="keyword">function</span>(<span class="params">image</span>) </span>&#123;</span><br><span class="line">				<span class="keyword">return</span> FileManager.get(image.fileId);</span><br><span class="line">			&#125;));</span><br><span class="line">		&#125;);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Criando_um_endpoint"><a href="#Criando_um_endpoint" class="headerlink" title="Criando um endpoint"></a>Criando um endpoint</h2><p>Eu acredito que essa seja a parte mais simples de tudo: Criar um endpoint em que você possa requisitar a sua imagem apartir do seu site.</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> EXT_REMOVE_REGEX = <span class="regexp">/\.([A-z]+)$/</span>;</span><br><span class="line"></span><br><span class="line">app.get(<span class="string">'images/:imageId'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">req, res</span>) </span>&#123;</span><br><span class="line">	<span class="keyword">var</span> ext, filename = req.params.id;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Vamos remover a extensão do arquivo, caso você tenha</span></span><br><span class="line">	<span class="comment">// digitado algo como "Z97d_KLEJAcVI_kII2tZ.png" ou</span></span><br><span class="line">	<span class="comment">// "Z97d_KLEJAcVI_kII2tZ.jpg"</span></span><br><span class="line">	filename = filename.replace(EXT_REMOVE_REGEX, <span class="function"><span class="keyword">function</span>(<span class="params">raw, $ext, index, filename</span>) </span>&#123;</span><br><span class="line">		ext = $ext;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">return</span> <span class="string">''</span>;</span><br><span class="line">	&#125;);</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Vamos preencher esta variável para futuramente podermos</span></span><br><span class="line">	<span class="comment">// reutilizar quando formos escrever o cabeçalho da resposta.</span></span><br><span class="line">	ext = ext || <span class="string">'png'</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> FileManager.get(filename).then(<span class="function"><span class="keyword">function</span>(<span class="params">buf</span>) </span>&#123;</span><br><span class="line">		<span class="comment">// Escrevendo no cabeçalho com a nova imagem e o tamanho</span></span><br><span class="line">		<span class="comment">// do buffer.</span></span><br><span class="line">		res.writeHead(<span class="number">200</span>, &#123;</span><br><span class="line">			<span class="string">'Content-Type'</span>: <span class="string">'image/'</span> + ext,</span><br><span class="line">			<span class="string">'Content-Length'</span>: buffer.length</span><br><span class="line">		&#125;);</span><br><span class="line">	</span><br><span class="line"></span><br><span class="line">		<span class="comment">// Respondendo a requisição com os dados da imagem, que</span></span><br><span class="line">		<span class="comment">// deverá ser carregada normalmente pelo seu navegador.</span></span><br><span class="line">		res.end(buf, <span class="string">'binary'</span>);</span><br><span class="line">	&#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>Espero que tenham gostado, deixem suas opiniões e dúvidas abaixo. Até a próxima.</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>Primeiramente nós devemos saber que essa nem sempre pode ser a melhor alternativa, ainda podemos utilizar o serviço S3 da Amazon, este gu]]>
+    </summary>
+    
+      <category term="gridfs" scheme="http://victorqueiroz.github.io/tags/gridfs/"/>
+    
+      <category term="images" scheme="http://victorqueiroz.github.io/tags/images/"/>
+    
+      <category term="mongodb" scheme="http://victorqueiroz.github.io/tags/mongodb/"/>
+    
+      <category term="specification" scheme="http://victorqueiroz.github.io/tags/specification/"/>
+    
+      <category term="store" scheme="http://victorqueiroz.github.io/tags/store/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[MongoDB: Pesquisa em raios de distância com coordenadas usando o $geoWithin e $centerSphere]]></title>
+    <link href="http://victorqueiroz.github.io/2015/09/06/MongoDB-Pesquisa-em-raios-de-distancia-com-coordenadas-usando-o-geoWithin-e-centerSphere/"/>
+    <id>http://victorqueiroz.github.io/2015/09/06/MongoDB-Pesquisa-em-raios-de-distancia-com-coordenadas-usando-o-geoWithin-e-centerSphere/</id>
+    <published>2015-09-07T02:46:05.000Z</published>
+    <updated>2016-01-21T20:09:37.460Z</updated>
+    <content type="html"><![CDATA[<p>Recentemente eu me deparei com o seguinte problema:</p>
+<p>Eu precisava verificar se uma lista de coordenadas estava ou não dentro de um dado raio de distância. A princípio eu pensei em utilizar a API do Google Maps, porém a única funcionalidade que faz esse tipo de pesquisa está disponível apenas na versão JavaScript, e a minha API estava escrita em Node.js e ficaria um pouco complicado de utilizar mais da cota para fazer uma pesquisa geográfica… Até que eu descobri o <code>$centerSphere</code> e o <code>$geoWithin</code> do MongoDB, e foi aí que eu vi que realmente MongoDB é o banco de dados do futuro… Hahaha.<br><a id="more"></a></p>
+<h3 id="Requisitos"><a href="#Requisitos" class="headerlink" title="Requisitos"></a>Requisitos</h3><ul>
+<li>MongoDB 3.0</li>
+</ul>
+<p>Primeiramente, como diz na documentação do MongoDB, a respeito do <a href="http://docs.mongodb.org/manual/reference/operator/query/centerSphere/" target="_blank" rel="external">$centerSphere</a>, é necessário saber que as coordenadas de latitude e longitude devem estar dentro de um <code>Array</code> para que o MongoDB possa fazer a pesquisa, mais ou menos da seguinte forma:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	<span class="string">"name"</span>: <span class="string">"Victor Queiroz"</span>,</span><br><span class="line">	<span class="string">"address"</span>: &#123;</span><br><span class="line">		<span class="string">"coords"</span>: [</span><br><span class="line">			<span class="number">7.0202512</span>,</span><br><span class="line">			<span class="number">4.8499534</span></span><br><span class="line">		]</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>A consulta deve ser escrita da seguinte forma:<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> coords = [</span><br><span class="line">	<span class="number">7.0398232</span>,</span><br><span class="line">	<span class="number">4.8492161</span></span><br><span class="line">];</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> miles = <span class="number">1.8</span>;</span><br><span class="line"></span><br><span class="line">db.users.find(&#123;</span><br><span class="line">	<span class="string">'address.coords'</span>: &#123;</span><br><span class="line">		$geoWithin: &#123;</span><br><span class="line">			$centerSphere: [</span><br><span class="line">				coords,</span><br><span class="line">				miles / <span class="number">3963.2</span></span><br><span class="line">			]</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure></p>
+<p>O MongoDB vai definir um círculo de X milhas, sendo <code>coords</code> o centro do raio, e fará uma pesquisa dentro de <code>address.coords</code> procurando por coordenadas que estejam presentes dentro desse círculo.</p>
+<p>No caso eu defini um raio de 1.8 milhas, que equivalem a 3km, novamente: <strong>Ele irá me retornar todos os documentos que estiverem dentro deste raio</strong>.</p>
+<p><strong>Lembre-se que a longitude deve estar ANTES da latitude dentro das listas.</strong></p>
+<p>Abaixo estão algumas descrições básicas sobre os operadores que utilizamos nessa consulta:</p>
+<h3 id="24centerSphere"><a href="#24centerSphere" class="headerlink" title="$centerSphere"></a>$centerSphere</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	<span class="xml"><span class="tag">&lt;<span class="title">location</span> <span class="attribute">field</span>&gt;</span>: &#123;</span><br><span class="line">		$geoWithin: &#123; $centerSphere: [ [ <span class="tag">&lt;<span class="title">x</span>&gt;</span>, <span class="tag">&lt;<span class="title">y</span>&gt;</span> ]</span>, <span class="xml"><span class="tag">&lt;<span class="title">radius</span>&gt;</span> ]</span> &#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Define um círculo para qualquer consulta geoespacial que utilize <a href="https://pt.wikipedia.org/wiki/Geometria_esf%C3%A9rica" target="_blank" rel="external">geometria esférica</a>.</p>
+<h3 id="24geoWithin"><a href="#24geoWithin" class="headerlink" title="$geoWithin"></a>$geoWithin</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	<span class="xml"><span class="tag">&lt;<span class="title">location</span> <span class="attribute">field</span>&gt;</span>: &#123;</span><br><span class="line">		$geoWithin: &#123;</span><br><span class="line">			$geometry: &#123;</span><br><span class="line">				type: <span class="tag">&lt;<span class="title">"Polygon"</span> <span class="attribute">or</span> "<span class="attribute">MultiPolygon</span>"&gt;</span> ,</span><br><span class="line">				coordinates: [ <span class="tag">&lt;<span class="title">coordinates</span>&gt;</span> ]</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Seleciona o documento com dados geoespaciais que existem inteiramente em um formato especificado. Ao determinar a inclusão, o MongoDB considera a fronteira de uma forma como se fosse parte da forma, sujeito à precisão dos números de ponto flutuante.</p>
+<p>Para mais informações, acesse a <a href="https://docs.mongodb.org/manual/reference/operator/query/geoWithin/" target="_blank" rel="external">documentação</a> oficial do MongoDB e leia a respeito.</p>
+<p>Espero que o artigo ajude a muitos da forma como me ajudou. Abraços.</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>Recentemente eu me deparei com o seguinte problema:</p>
+<p>Eu precisava verificar se uma lista de coordenadas estava ou não dentro de um dado raio de distância. A princípio eu pensei em utilizar a API do Google Maps, porém a única funcionalidade que faz esse tipo de pesquisa está disponível apenas na versão JavaScript, e a minha API estava escrita em Node.js e ficaria um pouco complicado de utilizar mais da cota para fazer uma pesquisa geográfica… Até que eu descobri o <code>$centerSphere</code> e o <code>$geoWithin</code> do MongoDB, e foi aí que eu vi que realmente MongoDB é o banco de dados do futuro… Hahaha.<br>]]>
+    
+    </summary>
+    
+      <category term="mongodb node" scheme="http://victorqueiroz.github.io/tags/mongodb-node/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[AngularJS 1.3: Conhecendo os validadores assíncronos]]></title>
+    <link href="http://victorqueiroz.github.io/2014/11/02/angularjs-1-3-conhecendo-os-validadores-assincronos/"/>
+    <id>http://victorqueiroz.github.io/2014/11/02/angularjs-1-3-conhecendo-os-validadores-assincronos/</id>
+    <published>2014-11-03T01:57:13.000Z</published>
+    <updated>2016-01-21T20:09:37.460Z</updated>
+    <content type="html"><![CDATA[<h3 id="O_que_s_E3o_os__24asyncValidators_3F"><a href="#O_que_s_E3o_os__24asyncValidators_3F" class="headerlink" title="O que são os $asyncValidators?"></a>O que são os $asyncValidators?</h3><p>Os $asyncValidators, como o nome já diz, são validadores <a href="http://pt.wikipedia.org/wiki/Comunica%C3%A7%C3%A3o_ass%C3%ADncrona" target="_blank" rel="external">assíncronos</a>, ou seja, eles não são executados pelo Angular de forma independente. Eles representam um dos componentes do <a href="https://docs.angularjs.org/api/ng/type/ngModel.NgModelController" target="_blank" rel="external">NgModelController</a> que é o controlador da diretiva mais usada no mundo do AngularJS, o <a href="https://docs.angularjs.org/api/ng/directive/ngModel" target="_blank" rel="external">ngModel</a>.<br><a id="more"></a></p>
+<h3 id="Onde_eu_deveria_utilizar_um_validador_ass_EDncrono_3F"><a href="#Onde_eu_deveria_utilizar_um_validador_ass_EDncrono_3F" class="headerlink" title="Onde eu deveria utilizar um validador assíncrono?"></a>Onde eu deveria utilizar um validador assíncrono?</h3><p>Você deve utilizar validadores assíncronos junto ao ngModel (obviamente), em um campo de texto em que deverá ser digitado um nome de usuário, um endereço de correio eletrônico etc.</p>
+<h3 id="Como_ele_funciona_3F"><a href="#Como_ele_funciona_3F" class="headerlink" title="Como ele funciona?"></a>Como ele funciona?</h3><p>Dentro de cada validador, deverá ter uma <a href="https://docs.angularjs.org/api/ng/service/$q" target="_blank" rel="external">promessa</a>, que deverá retornar um resolve ou um reject. Caso retorne um resolved, o campo será definido como válido, caso retorne um reject, o campo será definido como inválido.</p>
+<p>Quando o validador for definido como inválido, será adicionada uma nova classe chamada <span class="lang:js decode:true  crayon-inline ">ng-(nome desnormalizado do seu validador)-invalid</span>  ou com o final <span class="lang:js decode:true  crayon-inline">-valid</span> , caso ele seja definido como válido.</p>
+<p>Enquanto o seu formulário tiver algum validador pendente, o FormController equivalente receberá a chave <span class="lang:js decode:true  crayon-inline ">$pending</span> , assim como o campo equivalente dentro do <a href="https://docs.angularjs.org/api/ng/type/form.FormController" target="_blank" rel="external">FormController</a> (exemplo: <span class="lang:js decode:true  crayon-inline ">form.email.$pending</span> ou <span class="lang:js decode:true  crayon-inline ">form.$pending</span> ), equivalente também receberá.</p>
+<p>O campo só será definido como válido ou inválido, quando todos os validadores assíncronos forem resolvidos. Enquanto isso a chave <span class="lang:js decode:true  crayon-inline ">$pending</span>  continuará a existir no campo e no formulário.</p>
+<p>Você também pode verificar se o seu campo é válido ou inválido atráves de uma chave dentro da chave $error, que se encontra dentro do FormController atual. Exemplo:</p>
+<pre class="lang:js decode:true ">&lt;form name="myForm"&gt;
+  &lt;div ng-show="myForm.$pending"&gt;
+    Verificando...
+  &lt;/div&gt;
+  &lt;input ng-model="user.email" unique-email&gt;
+  &lt;div ng-show="myForm.email.$pending.uniqueEmail"&gt;
+    Verificando...
+  &lt;/div&gt;
+  &lt;div ng-show="myForm.email.$error.uniqueEmail"&gt;
+    Este e-mail já está sendo usado por outra pessoa.
+  &lt;/div&gt;
+&lt;/form&gt;</pre>
+
+<p>Dessa maneira, você poderá implementar vários validadores assíncronos dentro de um só <span class="lang:js decode:true  crayon-inline ">NgModelController</span> . Veja a próxima seção e entenderá melhor.</p>
+<h3 id="Como_utilizar_3F"><a href="#Como_utilizar_3F" class="headerlink" title="Como utilizar?"></a>Como utilizar?</h3><p>Você deve aprender a utilizar a opção require do <a href="https://docs.angularjs.org/api/ng/service/$compile" target="_blank" rel="external">$compile</a>, que importará o NgModelController da diretiva atual para que você possa inserir o seu validador assíncrono. O seu validador será definido por uma nova chave em NgModelController.$asyncValidators, a chave deverá ser o nome do seu validador.</p>
+<h3 id="Exemplo"><a href="#Exemplo" class="headerlink" title="Exemplo"></a>Exemplo</h3><pre class="">.directive('uniqueUsername', function ($http, $q) {
+   return {
+     require: '?ngModel',
+     link: function (scope, element, attrs, ngModel) {
+       ngModel.$asyncValidators.uniqueUsername = function(modelValue, viewValue) {
+         var value = modelValue || viewValue;
+
+         // Procura por um usuário pelo nome
+         return $http.get('/api/users/' + value).then(function resolved() {
+           return $q.reject('exists');
+         }, function rejected() {
+           return true;
+         });
+       };
+     }
+  };
+});</pre>
+
+<p>Espero que tenham gostado, quaisquer dúvidas, deixem seus comentários.</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<h3 id="O_que_s_E3o_os__24asyncValidators_3F"><a href="#O_que_s_E3o_os__24asyncValidators_3F" class="headerlink" title="O que são os $asyncValidators?"></a>O que são os $asyncValidators?</h3><p>Os $asyncValidators, como o nome já diz, são validadores <a href="http://pt.wikipedia.org/wiki/Comunica%C3%A7%C3%A3o_ass%C3%ADncrona">assíncronos</a>, ou seja, eles não são executados pelo Angular de forma independente. Eles representam um dos componentes do <a href="https://docs.angularjs.org/api/ng/type/ngModel.NgModelController">NgModelController</a> que é o controlador da diretiva mais usada no mundo do AngularJS, o <a href="https://docs.angularjs.org/api/ng/directive/ngModel">ngModel</a>.<br>]]>
+    
+    </summary>
+    
+      <category term="AngularJS" scheme="http://victorqueiroz.github.io/tags/AngularJS/"/>
+    
+      <category term="JavaScript" scheme="http://victorqueiroz.github.io/tags/JavaScript/"/>
+    
+      <category term="AngularJS" scheme="http://victorqueiroz.github.io/categories/AngularJS/"/>
+    
+      <category term="Frameworks" scheme="http://victorqueiroz.github.io/categories/AngularJS/Frameworks/"/>
+    
+      <category term="JavaScript" scheme="http://victorqueiroz.github.io/categories/AngularJS/Frameworks/JavaScript/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[Configurando o Wi-Fi com uma Broadcom BCM4312 no Debian]]></title>
+    <link href="http://victorqueiroz.github.io/2014/09/28/configurando-o-wi-fi-com-uma-broadcom-bcm4312-no-debian/"/>
+    <id>http://victorqueiroz.github.io/2014/09/28/configurando-o-wi-fi-com-uma-broadcom-bcm4312-no-debian/</id>
+    <published>2014-09-28T10:07:40.000Z</published>
+    <updated>2016-01-21T20:09:37.464Z</updated>
+    <content type="html"><![CDATA[<p>O módulo que utilizaremos para fazer nossa placa Wi-Fi funcionar, será o <strong>wl</strong>, além da BCM 4312, o módulo suporta os seguintes dispositivos: BCM4311, BCM4313, BCM4321, BCM4322, BCM43224, BCM43225, BCM43227, BCM43228.</p>
+<a id="more"></a>
+<h3 id="Instalando_e_configurando_o_m_F3dulo"><a href="#Instalando_e_configurando_o_m_F3dulo" class="headerlink" title="Instalando e configurando o módulo"></a>Instalando e configurando o módulo</h3><p>Primeiro você deve se autenticar como sudo:</p>
+<pre class="lang:sh decode:true ">su root</pre>
+
+<p>Caso não tenha adicionado os pacotes <span class="lang:js decode:true  crayon-inline ">contrib</span>  e <span class="lang:sh decode:true  crayon-inline ">non-free</span> aos seus espelhos. Faça isso! No caso, eu utilizo o Debian sid, então meu arquivo <span class="lang:js decode:true  crayon-inline ">/etc/apt/sources.list</span>  ficou assim:</p>
+<pre class="lang:sh decode:true "># 
+
+deb http://ftp.br.debian.org/debian/ sid main contrib non-free</pre>
+
+<p>Agora atualize a lista de pacotes:</p>
+<pre class="lang:sh decode:true ">apt-get update</pre>
+
+<p>Instale o <strong>module-assistant</strong> e o <strong>wireless-tools</strong>:</p>
+<pre class="lang:sh decode:true ">apt-get install -y module-assistant wireless-tools</pre>
+
+<p>Compile e instale um dos pacotes broadcom-sta-modules-<em> para o seu sistema, utilizando o assistente de módulos (<em>*module-assistant</em></em>):</p>
+<pre class="lang:sh decode:true ">m-a a-i broadcom-sta</pre>
+
+<p>Automaticamente, ele deve adicionar a lista negra do modprobe os pacotes que podem conflitar e acabar não permitindo que sua placa de Wi-Fi funcione corretamente, mas caso ele não adicione, vá até o seu arquivo <span class="lang:js decode:true  crayon-inline ">/etc/modprobe.d/broadcom-sta-common.conf </span> e cole todas as linhas abaixo:</p>
+<pre class="lang:sh decode:true"># wl module from Broadcom conflicts with ssb
+# We must blacklist the following modules:
+blacklist b43
+blacklist b43legacy
+blacklist b44
+blacklist bcma
+blacklist brcm80211
+blacklist brcmsmac
+blacklist ssb
+install wl /sbin/modprobe --ignore-install wl $CMDLINE_OPTS</pre>
+
+<p>Assim, sempre que o seu sistema operacional for iniciado, ele forçará o carregamento do módulo <strong>wl </strong>e cancelará os outros módulos que conflitarão, caso tenham sido carregados.</p>
+<p>Agora vamos atualizar o ramdisk, para que os arquivos que foram modificados sejam atualizados:</p>
+<pre class="lang:sh decode:true ">update-initramfs -u -k $(uname -r)</pre>
+
+<p>Mate os módulos que causarão conflitos e que podem estar sendo carregados:</p>
+<pre class="lang:sh decode:true">modprobe -r b43 b43legacy b44 bcma brcm80211 brcmsmac ssb</pre>
+
+<p>Inicie o módulo <strong>wl</strong>:</p>
+<pre class="lang:sh decode:true ">modprobe wl</pre>
+
+<h3 id="Configurando_as_interfaces_de_rede"><a href="#Configurando_as_interfaces_de_rede" class="headerlink" title="Configurando as interfaces de rede"></a>Configurando as interfaces de rede</h3><p>Este é um passo que não deve ser ignorando, você deve abrir o arquivo <span class="lang:sh decode:true  crayon-inline">/etc/network/interfaces</span> e configurá-lo para que ele habilite a sua conexão de rede. Caso não saiba qual seja, digite <span class="lang:sh decode:true  crayon-inline ">ip addr show</span> e poderá ver, a placa de rede Wi-Fi sempre começa com <strong>wlan </strong>(i.e. wlan1, wlan2, wlan3…).</p>
+<p>No meu caso, o meu arquivo <span class="lang:js decode:true  crayon-inline ">/etc/network/interfaces</span> está da seguinte maneira:</p>
+<pre class="lang:sh decode:true "># This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+allow-hotplug eth0
+iface eth0 inet dhcp
+
+auto wlan0
+allow-hotplug wlan0</pre>
+
+<p>Após terminar de configurar o seu arquivo, salve-o e recarregue-o:</p>
+<pre class="lang:sh decode:true ">/etc/init.d/networking restart</pre>
+
+<p>Ou:</p>
+<pre class="lang:sh decode:true ">service networking restart</pre>
+
+<p>Caso não realize nenhum destes procedimentos, sua placa Wi-Fi pode até se conectar a alguma rede através de gerenciadores de conexão pelo X, mas provavelmente não carregará nenhum site pelo navegador.</p>
+<p>Para mais informações sobre como configurar a sua rede Wi-Fi pelo arquivo <span class="lang:sh decode:true  crayon-inline ">/etc/network/interfaces</span> , acesse <a href="https://wiki.debian.org/WiFi/HowToUse" target="_blank" rel="external">WiFi/HowToUse</a>.</p>
+<p>&nbsp;</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>O módulo que utilizaremos para fazer nossa placa Wi-Fi funcionar, será o <strong>wl</strong>, além da BCM 4312, o módulo suporta os seguintes dispositivos: BCM4311, BCM4313, BCM4321, BCM4322, BCM43224, BCM43225, BCM43227, BCM43228.</p>]]>
+    
+    </summary>
+    
+      <category term="Broadcom" scheme="http://victorqueiroz.github.io/tags/Broadcom/"/>
+    
+      <category term="Configuração" scheme="http://victorqueiroz.github.io/tags/Configuracao/"/>
+    
+      <category term="Debian" scheme="http://victorqueiroz.github.io/tags/Debian/"/>
+    
+      <category term="Instalação" scheme="http://victorqueiroz.github.io/tags/Instalacao/"/>
+    
+      <category term="Kernel" scheme="http://victorqueiroz.github.io/tags/Kernel/"/>
+    
+      <category term="Linux" scheme="http://victorqueiroz.github.io/tags/Linux/"/>
+    
+      <category term="Placa de rede" scheme="http://victorqueiroz.github.io/tags/Placa-de-rede/"/>
+    
+      <category term="Ubuntu" scheme="http://victorqueiroz.github.io/tags/Ubuntu/"/>
+    
+      <category term="Wireless" scheme="http://victorqueiroz.github.io/tags/Wireless/"/>
+    
+      <category term="módulos" scheme="http://victorqueiroz.github.io/tags/modulos/"/>
+    
+      <category term="Debian" scheme="http://victorqueiroz.github.io/categories/Debian/"/>
+    
+      <category term="Linux" scheme="http://victorqueiroz.github.io/categories/Debian/Linux/"/>
+    
+      <category term="Sistemas Operacionais" scheme="http://victorqueiroz.github.io/categories/Debian/Linux/Sistemas-Operacionais/"/>
+    
+      <category term="Unix" scheme="http://victorqueiroz.github.io/categories/Debian/Linux/Sistemas-Operacionais/Unix/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[AngularJS, Jasmine, Karma: Testando diretivas]]></title>
+    <link href="http://victorqueiroz.github.io/2014/09/25/angularjs-jasmine-karma-testando-diretivas/"/>
+    <id>http://victorqueiroz.github.io/2014/09/25/angularjs-jasmine-karma-testando-diretivas/</id>
+    <published>2014-09-25T11:03:09.000Z</published>
+    <updated>2016-01-21T20:09:37.460Z</updated>
+    <content type="html"><![CDATA[<p>Se você ainda não teve a experiência de usar o ngMock com Jasmine, não sabe o que está perdendo, é tudo muito maravilhoso e poderoso. Continue lendo, vamos lá!</p>
+<a id="more"></a>
+<p>Como falei no final do artigo <a href="http://victorqueiroz.co/angularjs-criando-testes-com-jasmine-e-karma/" target="_blank" rel="external">AngularJS: Criando testes com Jasmine e Karma</a>, você pode usar o $injector do AngularJS para chamar em qualquer lugar tudo aquilo que precisamos para trabalhar com nossos módulos, neste guia nós utilizaremos as seguintes dependências:</p>
+<ul>
+<li>$injector</li>
+<li>$rootScope</li>
+<li>$compile</li>
+</ul>
+<h2 id="Importando_as_depend_EAncias"><a href="#Importando_as_depend_EAncias" class="headerlink" title="Importando as dependências"></a>Importando as dependências</h2><p>Vamos começar chamando as nossas dependências dentro do nosso teste:</p>
+<p><pre class="lang:js decode:true">describe(‘app module’, function () {<br>    var $compile, $rootScope;</pre></p>
+<pre><code>beforeEach(module(&apos;app&apos;));
+
+beforeEach(inject(function ($injector) {
+    $compile = $injector.get(&apos;$compile&apos;);
+    $rootScope = $injector.get(&apos;$rootScope&apos;);
+}));
+</code></pre><p>});<br>Logo acima importamos as dependências que serão reutilizadas pelas próximas suítes, agora vamos importar as dependências da nossa diretiva:</p>
+<p><pre class="lang:js decode:true">describe(‘app module’, function () {<br>    var $compile, $rootScope;</pre></p>
+<pre><code>beforeEach(module(&apos;app&apos;));
+
+beforeEach(inject(function ($injector) {
+    $compile = $injector.get(&apos;$compile&apos;);
+    $rootScope = $injector.get(&apos;$rootScope&apos;);
+}));
+
+describe(&apos;replacer directive&apos;, function () {
+    var element, scope, form;
+
+    beforeEach(inject(function ($injector) {
+        scope = $rootScope.$new();
+    }));
+});
+</code></pre><p>});<br>Agora precisamos compilar o nosso elemento dentro da suíte <span class="lang:js decode:true  crayon-inline ">replacer directive</span> , faremos da seguinte maneira:</p>
+<p><pre class="lang:js decode:true">    describe(‘replacer directive’, function () {<br>        var element, scope, form;</pre></p>
+<pre><code>    beforeEach(inject(function ($injector) {
+        scope = $rootScope.$new();
+        element = &apos;&amp;lt;form&amp;gt;&apos; + &apos;&amp;lt;input ng-model=&quot;text&quot; name=&quot;text&quot; replacer-directive&amp;gt;&apos; + &apos;&amp;lt;/form&amp;gt;&apos;;
+        element = angular.element(element);
+        element = $compile(element)(scope);
+    }));
+});&lt;/pre&gt;
+</code></pre><p>Agora você deve estar se perguntando:</p>
+<blockquote>
+<p>Como diabos eu vou pegar o meu input? Vou ter que fazer malabarismos com jQuery ou document.querySelector?<br><strong>Resposta: </strong>NÃO! Basta dar um valor para a única variável que ainda não definimos dentro da suíte <span class="lang:js decode:true  crayon-inline ">replacer directive</span> :</p>
+<p><pre class="lang:js mark:7 decode:true">beforeEach(inject(function ($injector) {<br>    scope = $rootScope.$new();<br>    element = ‘&lt;form&gt;’ + ‘&lt;input ng-model=”text” name=”text” replacer-directive&gt;’ + ‘&lt;/form&gt;’;<br>    element = angular.element(element);<br>    element = $compile(element)(scope);<br>        form = scope.form;<br>        scope.$digest();<br>}));</pre><br>Agora podemos acessar ao nosso input através da variável <span class="lang:js decode:true  crayon-inline ">form</span> , da seguinte forma:</p>
+<p><pre class="lang:js decode:true ">form.text</pre><br>Note que utilizamos um novo método na penúltima linha, o <span class="lang:js decode:true  crayon-inline ">scope.$digest()</span> , ele cuidará de atualizar o scope, todas as modificações que fizer no scope deve conter um <span class="lang:js decode:true  crayon-inline ">scope.$digest()</span> após para que todas as modificações sejam aplicadas ao DOM.</p>
+</blockquote>
+<p>Agora nós podemos fazer os nossos testes:</p>
+<p><pre class="lang:js decode:true">it(‘should replace 2 with 3’, function () {<br>  scope.text = 252;<br>  scope.$digest();</pre></p>
+<p>  expect(form.text).toBe(352);<br>});<br>A partir daí podemos ser felizes para sempre e testar as nossas diretivas de todas as maneiras possíveis para que tudo funcione exatamente como esperado.</p>
+<p>Como já sabem, deixem suas dúvidas nos comentários. Um abraço a todos e até a próxima!</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>Se você ainda não teve a experiência de usar o ngMock com Jasmine, não sabe o que está perdendo, é tudo muito maravilhoso e poderoso. Continue lendo, vamos lá!</p>]]>
+    
+    </summary>
+    
+      <category term="AngularJS" scheme="http://victorqueiroz.github.io/tags/AngularJS/"/>
+    
+      <category term="Diretivas" scheme="http://victorqueiroz.github.io/tags/Diretivas/"/>
+    
+      <category term="Jasmine" scheme="http://victorqueiroz.github.io/tags/Jasmine/"/>
+    
+      <category term="JavaScript" scheme="http://victorqueiroz.github.io/tags/JavaScript/"/>
+    
+      <category term="Teste de unidade" scheme="http://victorqueiroz.github.io/tags/Teste-de-unidade/"/>
+    
+      <category term="Testes unitários" scheme="http://victorqueiroz.github.io/tags/Testes-unitarios/"/>
+    
+      <category term="directives" scheme="http://victorqueiroz.github.io/tags/directives/"/>
+    
+      <category term="AngularJS" scheme="http://victorqueiroz.github.io/categories/AngularJS/"/>
+    
+      <category term="Frameworks" scheme="http://victorqueiroz.github.io/categories/AngularJS/Frameworks/"/>
+    
+      <category term="JavaScript" scheme="http://victorqueiroz.github.io/categories/AngularJS/Frameworks/JavaScript/"/>
+    
+      <category term="Testes unitários" scheme="http://victorqueiroz.github.io/categories/AngularJS/Frameworks/JavaScript/Testes-unitarios/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[AngularJS: Criando testes com Jasmine e Karma]]></title>
+    <link href="http://victorqueiroz.github.io/2014/09/18/angularjs-criando-testes-com-jasmine-e-karma/"/>
+    <id>http://victorqueiroz.github.io/2014/09/18/angularjs-criando-testes-com-jasmine-e-karma/</id>
+    <published>2014-09-18T03:33:04.000Z</published>
+    <updated>2016-01-21T20:09:37.460Z</updated>
+    <content type="html"><![CDATA[<blockquote>
+<p>Antes de mais nada é importante que você leia o artigo <a href="http://victorqueiroz.co/jasmine-primeiro-contato-com-testes-unitarios/" target="_blank" rel="external">Jasmine: Primeiro contato com testes unitários</a>, caso ainda não saiba o que é Jasmine.</p>
+</blockquote>
+<a id="more"></a>
+<h2 id="Depend_EAncias"><a href="#Depend_EAncias" class="headerlink" title="Dependências"></a>Dependências</h2><ul>
+<li><a href="https://docs.angularjs.org/api/ngMock" target="_blank" rel="external">angular-mocks</a></li>
+</ul>
+<h2 id="Escrevendo_testes"><a href="#Escrevendo_testes" class="headerlink" title="Escrevendo testes"></a>Escrevendo testes</h2><p>É bem simples, é importante que você utilize o <span class="lang:js decode:true  crayon-inline">beforeEach()</span>  do Jasmine, o <span class="lang:js decode:true  crayon-inline ">module</span>  e o <span class="lang:js decode:true  crayon-inline">inject</span>  do <strong>angular-mocks</strong>, e o <span class="lang:js decode:true  crayon-inline ">$injector</span>  do próprio angular para carregar todas as dependências necessárias.</p>
+<p>Veja um simples exemplo em que eu carrego um serviço de dentro de um módulo:</p>
+<p><pre class="lang:js decode:true ">describe(‘app module’, function () {<br>  var User;</pre></p>
+<p>  beforeEach(module(‘app’));</p>
+<p>  beforeEach(inject(function ($injector) {<br>    User = $injector.get(‘User’);<br>  }));</p>
+<p>  it(‘should have a User service’, function () {<br>    expect(typeof User.$get).toEqual(‘function’);<br>  });<br>});<br>Vejam que na linha 4 nós carregamos o módulo, é importante lembrar que caso este módulo utilize serviços de um outro módulo, ele terá que ser carregado também, basta adicionar abaixo do <span class="lang:js decode:true  crayon-inline ">beforeEach</span>  em que carregamos o módulo principal e o seu problema estará resolvido.</p>
+<p>Na linha 6, nós injetamos através do <span class="lang:js decode:true  crayon-inline ">inject</span> o <span class="lang:js decode:true  crayon-inline ">$injector</span>  na função, o <span class="lang:js decode:true  crayon-inline">inject</span> pode ser utilizado em qualquer lugar do seu teste. A partir daí você poderá importar o <span class="lang:js decode:true  crayon-inline">$compile</span> caso queira compilar diretivas no DOM, o <span class="lang:js decode:true  crayon-inline ">$rootScope</span> caso queira criar um <span class="lang:js decode:true  crayon-inline ">$scope</span> para compilar as diretivas.</p>
+<h2 id="Rodando_seus_testes_com_o_Karma_Runner"><a href="#Rodando_seus_testes_com_o_Karma_Runner" class="headerlink" title="Rodando seus testes com o Karma Runner"></a>Rodando seus testes com o Karma Runner</h2><h3 id="Instalando_o_Karma"><a href="#Instalando_o_Karma" class="headerlink" title="Instalando o Karma"></a>Instalando o Karma</h3><p>Você deve instalar o Karma via npm globalmente:</p>
+<p><pre class="lang:sh decode:true">npm instal -g karma</pre><br>E localmente no seu projeto (ou ele não irá funcionar):</p>
+<p><pre class="lang:sh decode:true">npm install –save-dev karma</pre><br>Criando um arquivo de configuração do Karma</p>
+<p>É algo simplesmente simples (?) e rápido! Vá até a pasta raiz do seu projeto e digite:</p>
+<p><pre class="lang:sh decode:true">karma init</pre><br>Preencha todas as perguntas e BUM, você tem um arquivo de configuração do Karma.</p>
+<h3 id="Rodando_os_testes_com_o_Karma"><a href="#Rodando_os_testes_com_o_Karma" class="headerlink" title="Rodando os testes com o Karma"></a>Rodando os testes com o Karma</h3><p>Mais uma das maravilhas do CLI do Karma:</p>
+<p><pre class="lang:sh decode:true ">karma start –no-single-run –log-level debug</pre><br>Você pode trocar o parâmetro <span class="lang:sh decode:true  crayon-inline ">–no-single-run</span>  por <span class="lang:sh decode:true  crayon-inline ">–single-run</span> , e ele não ficará assistindo as mudanças que ocorrerão nos seus arquivos para reiniciar os testes, inclusive é importante deixar que o padrão seja <span class="lang:sh decode:true  crayon-inline ">–single-run</span>  para caso tenha planos de usar algum sistema de <strong>Continuous Integration</strong>, caso contrário, ele pode retornar como se os testes estivessem falhados quando ele apenas parou os testes para assistir as mudanças dos arquivos.</p>
+<h3 id="Finaliza_E7_E3o_e_dicas"><a href="#Finaliza_E7_E3o_e_dicas" class="headerlink" title="Finalização e dicas"></a>Finalização e dicas</h3><p>Tenha em mente de que você terá que configurar o seu arquivo de configuração do Karma (geralmente karma.conf.js, localizado na pasta raiz do seu projeto) para carregar o <strong>angular</strong> e o <strong>angular-mocks</strong>, e todos os outros assets que você carrega para fazer seus módulos funcionarem corretamente, é claro.</p>
+<p>O seu arquivo de testes deve ser parecido com o do exemplo acima, e qualquer dúvida você pode ler a documentação do angular-mocks OU pode vir aqui e deixar o seu comentário e eu terei um imenso prazer em lhe responder.</p>
+<p>Quaisquer dúvidas, deixem abaixo nos comentários ou enviem-me e-mails, um abraço e até a próxima!</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<blockquote>
+<p>Antes de mais nada é importante que você leia o artigo <a href="http://victorqueiroz.co/jasmine-primeiro-contato-com-testes-unitarios/">Jasmine: Primeiro contato com testes unitários</a>, caso ainda não saiba o que é Jasmine.</p>
+</blockquote>]]>
+    
+    </summary>
+    
+      <category term="Jasmine" scheme="http://victorqueiroz.github.io/tags/Jasmine/"/>
+    
+      <category term="JavaScript" scheme="http://victorqueiroz.github.io/tags/JavaScript/"/>
+    
+      <category term="Testes unitários" scheme="http://victorqueiroz.github.io/tags/Testes-unitarios/"/>
+    
+      <category term="AngularJS" scheme="http://victorqueiroz.github.io/categories/AngularJS/"/>
+    
+      <category term="Frameworks" scheme="http://victorqueiroz.github.io/categories/AngularJS/Frameworks/"/>
+    
+      <category term="JavaScript" scheme="http://victorqueiroz.github.io/categories/AngularJS/Frameworks/JavaScript/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[Jasmine: Primeiro contato com testes unitários]]></title>
+    <link href="http://victorqueiroz.github.io/2014/09/17/jasmine-primeiro-contato-com-testes-unitarios/"/>
+    <id>http://victorqueiroz.github.io/2014/09/17/jasmine-primeiro-contato-com-testes-unitarios/</id>
+    <published>2014-09-18T00:57:48.000Z</published>
+    <updated>2016-01-21T20:09:37.464Z</updated>
+    <content type="html"><![CDATA[<p>Já se foram os tempos em que nós desenvolvedores testávamos as nossas aplicações na mão, íamos até um navegador, abrir de página por página e saíamos dando <span class="lang:js decode:true  crayon-inline">console.log</span> em tudo para sabermos se aquilo estava realmente retornando o que esperávamos. E para os que ainda não conhecem, eu trouxe até vocês a apresentação de um ótimo testador unitário que vai mudar o seu jeito de desenvolver as suas aplicações. Hahahahaha! Vamos lá! :D</p>
+<a id="more"></a>
+<h2 id="Introdu_E7_E3o"><a href="#Introdu_E7_E3o" class="headerlink" title="Introdução"></a>Introdução</h2><h3 id="O_que__E9_Jasmine_3F"><a href="#O_que__E9_Jasmine_3F" class="headerlink" title="O que é Jasmine?"></a>O que é Jasmine?</h3><p>Jasmine é um framework de <a href="http://pt.wikipedia.org/wiki/Behavior_Driven_Development" target="_blank" rel="external">desenvolvimento orientado a comportamento</a> para testes de códigos em JavaScript. Não depende de nenhum outro framework de JavaScript. E o melhor de tudo é que ele possuí uma sintaxe limpa e óbvia, então você poderá escrever testes que sejam limpos e fáceis de entender por qualquer outro desenvolvedor.</p>
+<h2 id="Let_u2019s_type_some_code"><a href="#Let_u2019s_type_some_code" class="headerlink" title="Let’s type some code"></a>Let’s type some code</h2><h3 id="O_que__E9_uma_su_EDte_de_testes_3F"><a href="#O_que__E9_uma_su_EDte_de_testes_3F" class="headerlink" title="O que é uma suíte de testes?"></a>O que é uma suíte de testes?</h3><p>Uma suíte de testes é nada mais nada menos que <strong>uma suíte</strong> em que você colocará todos os testes pertencentes a essa suíte dentro dela. É mais estético do que funcional, digamos assim. Exemplo: Eu tenho a suíte de testes chamada ‘application module’ e dentro dela eu tenho vários testes que irão testar os meu controladores, e outras funcionalidades do módulo <span class="lang:js decode:true  crayon-inline ">application</span> .</p>
+<h3 id="Algumas_das_fun_E7_F5es_que_o_Jasmine_me_disponibiliza_executar"><a href="#Algumas_das_fun_E7_F5es_que_o_Jasmine_me_disponibiliza_executar" class="headerlink" title="Algumas das funções que o Jasmine me disponibiliza executar"></a>Algumas das funções que o Jasmine me disponibiliza executar</h3><h4 id="describe__28describeName_2C_function_29"><a href="#describe__28describeName_2C_function_29" class="headerlink" title="describe (describeName, function)"></a><strong>describe (describeName, function)</strong></h4><p>Cria uma nova suíte de testes.</p>
+<h4 id="it__28testDescription_2C_function_29"><a href="#it__28testDescription_2C_function_29" class="headerlink" title="it (testDescription, function)"></a><strong>it (testDescription, function)</strong></h4><p>Cria um novo teste. É dentro dos <strong>it’s</strong> em que os testes realmente acontecem.</p>
+<h5 id="Padr_F5es"><a href="#Padr_F5es" class="headerlink" title="Padrões"></a>Padrões</h5><p>É importante que você mantenha um padrão ao determinar o <strong>testDescription</strong>, para isso você vai precisar de um pequeno conhecimento no idioma inglês.</p>
+<p>A função <span class="lang:js decode:true  crayon-inline ">it</span> se chama assim por um motivo bem simples, ela serve para que você possa determinar um teste de maneira mais limpa e próxima ao idioma, para que qualquer um que leia consiga entender bem o que você escreveu, ou seja, quando eu for determinar um novo teste eu não vou determiná-lo assim <span class="lang:js decode:true  crayon-inline">it(‘application module: version test’, fn)</span> , eu vou escrever o meu <strong>testDescription </strong>da seguinte maneira: <span class="lang:js decode:true  crayon-inline">it(‘should have a version’, fn)</span> , ou seja, eu literalmente completei o que a função ‘começou falando’: ‘<strong>it should have a version</strong>‘, no português ‘<strong>isto deve ter uma versão</strong>‘. Deu pra entender bem como deve ser este padrão?</p>
+<h5 id="Notas"><a href="#Notas" class="headerlink" title="Notas"></a>Notas</h5><blockquote>
+<p>Um <strong>it</strong>, não pode ser chamado fora de uma suíte de testes.<br>Exemplo:</p>
+<p><pre class="lang:js decode:true">describe(‘application module’, function () {<br>  it(‘should have a version’, function () {<br>    // tests should happen here<br>  });<br>});</pre><br><strong>ERRADO:</strong></p>
+<p><pre class="lang:js decode:true">describe(‘application module’, function () {<br>  // ???<br>});</pre></p>
+</blockquote>
+<p>it(‘should have a version’, function () {<br>  // tests should happen here<br>});</p>
+<h4 id="beforeEach__28function_29"><a href="#beforeEach__28function_29" class="headerlink" title="beforeEach (function)"></a><strong>beforeEach (function)</strong></h4><p>Esta função será resolvida antes de cada teste dentro de uma suíte começar a ser executado.</p>
+<h4 id="afterEach__28function_29"><a href="#afterEach__28function_29" class="headerlink" title="afterEach (function)"></a><strong>afterEach (function)</strong></h4><p>Esta função será resolvida depois de cada teste dentro de uma suíte terminar de ser executado.</p>
+<h4 id="expect__28value_29"><a href="#expect__28value_29" class="headerlink" title="expect (value)"></a><strong>expect (value)</strong></h4><p>Deve estar sempre dentro de um teste, ela é a última parte de um teste, esta função serve para que você possa verificar se <strong>value </strong>é igual ao valor esperado, é de fato o que chamamos de <strong>teste</strong>. Em <strong>value </strong>exatamente como o próprio parâmetro sugere, deve conter um valor, seja lá qual ele for, a partir desta função, será retornada uma outra função e você poderá utilizá-la de várias formas para finalizar o teste.</p>
+<ul>
+<li>toBe (value) - Verifica se <strong>value </strong>(definido com o <strong>expect</strong>) é igual a <strong>value </strong>(definido com toBe)</li>
+<li>toEqual (value) - Verifica se <strong>value </strong>(definido com o <strong>expect</strong>) é igual a <strong>value </strong>(definido com toEqual)</li>
+<li>toBeDefined() - Verifica se <strong>value </strong>foi definido.</li>
+<li>toMatch (match) - Executa uma expressão regular em <strong>value </strong>e retorna <strong>true </strong>caso encontre algo.</li>
+<li>toBeUndefined() - Verifica se <strong>value </strong>não foi definido.<br>Todas as funções acima podem ser usadas logo após um <strong>.not </strong>o que fará com que elas operem de maneira contrária. Exemplo:<br><pre class="lang:js decode:true">describe(‘application module’, function () {<br>it(‘should do something’, function () {<br>expect(true).not.toBe(false);<br>expect(true).toBe(true);<br>expect(true).not.toBeUndefined();<br>});<br>});</pre><br>Bom, espero que tenham gostado. Até a próxima, e lembrem-se. SIGAM OS PADRÕES e deixem suas dúvidas abaixo, tentarei ao máximo ajudar a todos, um abraço! :)</li>
+</ul>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>Já se foram os tempos em que nós desenvolvedores testávamos as nossas aplicações na mão, íamos até um navegador, abrir de página por página e saíamos dando <span class="lang:js decode:true  crayon-inline">console.log</span> em tudo para sabermos se aquilo estava realmente retornando o que esperávamos. E para os que ainda não conhecem, eu trouxe até vocês a apresentação de um ótimo testador unitário que vai mudar o seu jeito de desenvolver as suas aplicações. Hahahahaha! Vamos lá! :D</p>]]>
+    
+    </summary>
+    
+      <category term="Jasmine" scheme="http://victorqueiroz.github.io/tags/Jasmine/"/>
+    
+      <category term="JavaScript" scheme="http://victorqueiroz.github.io/tags/JavaScript/"/>
+    
+      <category term="Teste de unidade" scheme="http://victorqueiroz.github.io/tags/Teste-de-unidade/"/>
+    
+      <category term="Testes unitários" scheme="http://victorqueiroz.github.io/tags/Testes-unitarios/"/>
+    
+      <category term="JavaScript" scheme="http://victorqueiroz.github.io/categories/JavaScript/"/>
+    
+      <category term="Testes unitários" scheme="http://victorqueiroz.github.io/categories/JavaScript/Testes-unitarios/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[gulp.js: Utilizando pela primeira vez]]></title>
+    <link href="http://victorqueiroz.github.io/2014/09/16/gulp-js-um-automatizador-de-tarefas/"/>
+    <id>http://victorqueiroz.github.io/2014/09/16/gulp-js-um-automatizador-de-tarefas/</id>
+    <published>2014-09-16T11:12:32.000Z</published>
+    <updated>2016-01-21T20:09:37.464Z</updated>
+    <content type="html"><![CDATA[<p>Hail, brothers! Hoje vim apresentar o gulp.js, o automatizador de tarefas que funciona exatamente como o seu nome sugere, um GOLE. É rápido, eficiente, simples de usar e configurar e hoje vocês verão por que <del>ele é muito melhor que o Grunt</del>.</p>
+<a id="more"></a>
+<h2 id="My_name_is_gulp"><a href="#My_name_is_gulp" class="headerlink" title="My name is gulp"></a>My name is gulp</h2><h3 id="Instalando_o_gulp-js"><a href="#Instalando_o_gulp-js" class="headerlink" title="Instalando o gulp.js"></a>Instalando o gulp.js</h3><p>Bom nós instalamos o gulp através do npm:</p>
+<pre class="lang:sh decode:true">npm install -g gulp</pre>
+
+<p>Após isto basta prosseguir para o próximo passo sem ter medo <del>da verdade</del>.</p>
+<h3 id="Configurando_o_gulpfile-js"><a href="#Configurando_o_gulpfile-js" class="headerlink" title="Configurando o gulpfile.js"></a>Configurando o gulpfile.js</h3><p>Assim como no Grunt, no gulp você precisa criar um arquivo chamado <span class="lang:default decode:true  crayon-inline ">gulpfile.js</span>  ou <span class="lang:default decode:true  crayon-inline ">Gulpfile.js</span> na pasta raiz que deseja iniciar as suas tarefas. A primeira coisa que deve fazer é… Okay! Vou deixar vocês chutarem:</p>
+<p>a) Importar o gulp</p>
+<p>b) Exportar uma função com o parâmetro gulp utilizando o module.exports do Node.js <del>para futuramente ser pegue pelo gulp-cli</del></p>
+<p>Isso mesmo, alternativa <strong>a</strong>! Bom, basta importar o gulp, dessa maneira:</p>
+<pre class="lang:default decode:true ">var gulp = require('gulp');</pre>
+
+<h3 id="Criando_uma_tarefa"><a href="#Criando_uma_tarefa" class="headerlink" title="Criando uma tarefa"></a>Criando uma tarefa</h3><p>Para criar uma tarefa no gulp, é muito simples <del>pois diferente do grunt, nós não temos que enfiar todas as tarefas dentro de um Object imenso</del> pois temos o <span class="lang:default decode:true  crayon-inline">gulp.task</span> . Deem uma olhada na sintaxe:</p>
+<pre class="lang:default decode:true">gulp.task('taskName', function () {
+  // operations here
+});</pre>
+
+<h2 id="Entendendo_o_gulp-js"><a href="#Entendendo_o_gulp-js" class="headerlink" title="Entendendo o gulp.js"></a>Entendendo o gulp.js</h2><p>Bom, o gulp.js é um plugin de node muuuuuuuuito simples, muito simples MESMO. Se pararmos para ler o <a href="https://github.com/gulpjs/gulp/blob/master/index.js" target="_blank" rel="external">código fonte</a> do gulp, veremos que temos várias funções, as mais utilizadas são <span class="lang:default decode:true  crayon-inline ">gulp.task</span> , <span class="lang:default decode:true  crayon-inline ">gulp.src</span> , <span class="lang:default decode:true  crayon-inline ">gulp.dest</span>  e <span class="lang:default decode:true  crayon-inline ">gulp.watch</span> . Já sabemos para que serve o nosso <span class="lang:default decode:true  crayon-inline ">gulp.task</span> , então creio que não haja necessidade de explicar para que ele serve, mas quanto ao resto, vou explicar abaixo para que cada uma dessas funções serve:</p>
+<h3 id="gulp-src_28caminhos_5B_2C_opcoes_5D_29"><a href="#gulp-src_28caminhos_5B_2C_opcoes_5D_29" class="headerlink" title="gulp.src(caminhos[, opcoes])"></a>gulp.src(caminhos[, opcoes])</h3><p>O <strong>gulp.src </strong>como vimos no código-fonte do gulp.js, é simplesmente um wrapper ou envoltório para uma das funções do <a href="https://github.com/wearefractal/vinyl-fs" target="_blank" rel="external">vinyl-fs</a>. Funciona da seguinte maneira, ele recebe uma String ou um Array através do parâmetro caminhos (com suporte a regex), e você pode passar também algumas opções através do próximo parâmetro, cujo qual deve ser um Object, confira as opções que você pode acrescentar bem aqui: <a href="https://github.com/isaacs/node-glob#options&lt;strong&gt;&lt;/strong&gt;" target="_blank" rel="external">https://github.com/isaacs/node-glob#options</a>.</p>
+<h3 id="gulp-watch_28caminhos_2C_tasks_29"><a href="#gulp-watch_28caminhos_2C_tasks_29" class="headerlink" title="gulp.watch(caminhos, tasks)"></a>gulp.watch(caminhos, tasks)</h3><p>Serve para assistir arquivos, cada vez que qualquer desses arquivos mudam, todas as <strong>tasks</strong> (que deve ser um Array, mesmo que contenha apenas uma task) são executadas.</p>
+<h3 id="gulp-dest_28caminho_29"><a href="#gulp-dest_28caminho_29" class="headerlink" title="gulp.dest(caminho)"></a>gulp.dest(caminho)</h3><p>Serve simplesmente para direcionar o seu arquivo que está sendo lido no stream para o <strong>caminho</strong>. (Entenderemos em breve)</p>
+<h2 id="Exemplo"><a href="#Exemplo" class="headerlink" title="Exemplo"></a>Exemplo</h2><p>Bom, esta é a melhor parte, os EXEMPLOS de tarefas, aqui nós percebemos o quão simples funciona o automatizador de tarefas.</p>
+<h3 id="Compilando_os_nossos_estilos_em_SASS"><a href="#Compilando_os_nossos_estilos_em_SASS" class="headerlink" title="Compilando os nossos estilos em SASS"></a>Compilando os nossos estilos em SASS</h3><p>Primeiro instalamos os plugins que usaremos (todos os plugins abaixo são pacotes do npm registry):</p>
+<ul>
+<li><a href="https://github.com/dlmanning/gulp-sass" target="_blank" rel="external">gulp-sass</a></li>
+<li><a href="https://github.com/hparra/gulp-rename" target="_blank" rel="external">gulp-rename</a></li>
+<li><a href="https://github.com/chilijung/gulp-cssmin/" target="_blank" rel="external">gulp-cssmin</a></li>
+</ul>
+<p>Importamos as nossas dependências no topo do nosso arquivo gulpfile.js, que ficará mais ou menos assim:</p>
+<pre class="lang:js decode:true ">var gulp = require('gulp');
+
+var sass = require('gulp-sass');
+var cssmin = require('gulp-cssmin');
+var rename = require('gulp-rename');</pre>
+
+<p>Criamos uma nova tarefa:</p>
+<pre class="lang:default decode:true">gulp.task('stylesheets', function () {
+});</pre>
+
+<p>Agora que já temos uma terefa, vamos utilizar o gulp.src e anexar a eles, os caminhos que desejamos colocar no stream:</p>
+<pre class="lang:default decode:true">gulp.task('stylesheets', function () {
+  gulp.src('src/scss/**.{scss,sass}')
+});</pre>
+
+<p>Agora a partir daqui nos começaremos a utilizar o .pipe() logo após o gulp.src(), e basta que anexemos os nossos plugins dentro do pipe e pronto, já estamos executando. Vejam como é simples:</p>
+<pre class="lang:default decode:true">gulp.task('stylesheets', function () {
+  gulp.src('src/scss/**.{scss,sass}')
+    .pipe(sass())
+    .pipe(cssmin())
+    .pipe(rename({
+      basename: 'style',
+      suffix: '.min',
+      extname: '.css'
+    }))
+});</pre>
+
+<p>Agora tudo  o que precisamos fazer é jogar o nosso <span class="lang:default decode:true  crayon-inline ">gulp.dest</span>  ao final de tudo para dar um destino ao nosso novo arquivo que por enquanto, encontrasse vagando solitário dentro das pastas temporárias dos nossos computadores. Da seguinte maneira:</p>
+<pre class="lang:default decode:true">gulp.task('stylesheets', function () {
+  gulp.src('src/scss/**.{scss,sass}')
+    .pipe(sass())
+    .pipe(cssmin())
+    .pipe(rename({
+      basename: 'style',
+      suffix: '.min',
+      extname: '.css'
+    }))
+  .pipe(gulp.dest(path.join(__dirname, 'public', 'css')));
+});</pre>
+
+<p>Como utilizamos o<strong> gulp-rename</strong>, então não precisamos nos preocupar com o nome do arquivo.</p>
+<p>Bom, espero que tenham entendido <del>que o gulp é bem melhor que o grunt </del>tudo, quaisquer dúvidas, reclamações etc. deixem seus comentários and see you, buddies. ;)</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>Hail, brothers! Hoje vim apresentar o gulp.js, o automatizador de tarefas que funciona exatamente como o seu nome sugere, um GOLE. É rápido, eficiente, simples de usar e configurar e hoje vocês verão por que <del>ele é muito melhor que o Grunt</del>.</p>]]>
+    
+    </summary>
+    
+      <category term="Grunt" scheme="http://victorqueiroz.github.io/tags/Grunt/"/>
+    
+      <category term="gulp.js" scheme="http://victorqueiroz.github.io/tags/gulp-js/"/>
+    
+      <category term="Automatizadores de Tarefas" scheme="http://victorqueiroz.github.io/categories/Automatizadores-de-Tarefas/"/>
+    
+      <category term="JavaScript" scheme="http://victorqueiroz.github.io/categories/Automatizadores-de-Tarefas/JavaScript/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[Node.js - Criando um simples servidor web com Express 4]]></title>
+    <link href="http://victorqueiroz.github.io/2014/09/16/node-js-criando-um-simples-servidor-web-com-express-4/"/>
+    <id>http://victorqueiroz.github.io/2014/09/16/node-js-criando-um-simples-servidor-web-com-express-4/</id>
+    <published>2014-09-16T07:59:50.000Z</published>
+    <updated>2016-01-21T20:09:37.464Z</updated>
+    <content type="html"><![CDATA[<p>&nbsp;</p>
+<p>Assim como eu, provavelmente você já tenha feito a si essa pergunta:</p>
+<blockquote>
+<p>Eu posso criar um simples servidor web utilizando Node.js? Eu só quero algo pra rodar arquivos HTML, carregar os roteiros de códigos de maneira fácil.</p>
+</blockquote>
+<p><strong>Resposta: </strong>Sim, você pode fazer isso com Node.</p>
+<p>Tendo em mente que você deve executar todos esses passos de dentro da pasta do seu projeto. Segue com a gente o passo a passo e veja como é simples!</p>
+<a id="more"></a>
+<h3 id="Criando_o_package-json__28opcional_29"><a href="#Criando_o_package-json__28opcional_29" class="headerlink" title="Criando o package.json (opcional)"></a>Criando o package.json (opcional)</h3><p>É apenas simples e fácil assim como o próximo passo. Vá até a linha de comando e digite:</p>
+<pre class="lang:sh decode:true ">npm init</pre>
+
+<p>Preencha todas as perguntas e vá para o próximo passo.</p>
+<h3 id="Criando_o_bower-json__28opcional_29"><a href="#Criando_o_bower-json__28opcional_29" class="headerlink" title="Criando o bower.json (opcional)"></a>Criando o bower.json (opcional)</h3><p>Tão simples quanto criar o <strong>package.json</strong>, ainda sem sair da linha de comando, digite:</p>
+<pre class="lang:sh decode:true ">bower init</pre>
+
+<p>Preencha mais uma vez todas as perguntas.</p>
+<h3 id="Instalando_as_nossas_depend_EAncias_com_o_npm"><a href="#Instalando_as_nossas_depend_EAncias_com_o_npm" class="headerlink" title="Instalando as nossas dependências com o npm"></a>Instalando as nossas dependências com o npm</h3><p>Para fazer o servidor rodar nós precisaremos do express e nada mais. Então:</p>
+<pre class="lang:sh decode:true">npm install --save express</pre>
+
+<h3 id="Criando_um_arquivo_para_iniciar_o_servidor"><a href="#Criando_um_arquivo_para_iniciar_o_servidor" class="headerlink" title="Criando um arquivo para iniciar o servidor"></a>Criando um arquivo para iniciar o servidor</h3><p>Agora crie um arquivo para iniciar o servidor, no nosso exemplo o arquivo se chama <strong>server.js</strong>, importe o <strong>Express</strong> e crie a aplicação, dessa maneira:</p>
+<pre class="lang:js decode:true">var express = require('express');
+var app = express();
+
+var path = require('path');
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.listen(3000);</pre>
+
+<h4 id="Entendendo_o_c_F3digo"><a href="#Entendendo_o_c_F3digo" class="headerlink" title="Entendendo o código"></a>Entendendo o código</h4><p>Na primeira linha estamos pedindo a dependência <span class="lang:default decode:true  crayon-inline ">express</span> , na segunda linha estamos iniciando a aplicação, na quarta estamos pedindo a dependência <span class="lang:default decode:true  crayon-inline">path</span><strong> </strong>(que faz parte do núcleo do Node.js).</p>
+<h5 id="Linha_6"><a href="#Linha_6" class="headerlink" title="Linha 6"></a>Linha 6</h5><p>Antes precisamos entender para que servem o <span class="lang:js decode:true  crayon-inline ">app.use()</span>  e o <span class="lang:js decode:true  crayon-inline ">express.static()</span> :</p>
+<p>De acordo com a documentação do Express, o app.use() é utilizado para montagem de middlewares, se não definirmos nenhum caminho (<span class="lang:js decode:true  crayon-inline ">app.use(‘/someUrlHere’, some.Middleware())</span> ) antes de declararmos o middleware, que no caso é o <span class="lang:js decode:true  crayon-inline">express.static()</span>, por padrão ele será definido no caminho raiz, ou seja, quando determinamos a pasta <strong>public</strong> na linha 6, não estamos dizendo que aquela é a pasta pública e que ela vai conter o nosso site, estamos dizendo que quando o usuário entrar no caminho raiz do site, ele estará acessando a esta pasta também, OU SEJA, todos as pastas e arquivos dentro dela estarão disponíveis para o acesso diretamente do navegador.</p>
+<p>Já o <span class="lang:js decode:true  crayon-inline ">express.static</span> é baseado no <a href="https://github.com/expressjs/serve-static" target="_blank" rel="external">server-static</a> e serve simplesmente para prover o acesso em uma pasta e todos os seus arquivos.</p>
+<h5 id="DAltima_linha"><a href="#DAltima_linha" class="headerlink" title="Última linha"></a>Última linha</h5><p>Nesta linha, estamos apenas iniciando o servidor da aplicação.</p>
+<h3 id="Iniciando_o_servidor"><a href="#Iniciando_o_servidor" class="headerlink" title="Iniciando o servidor"></a>Iniciando o servidor</h3><p>Voltando novamente a linha de comando, digite:</p>
+<pre class="lang:sh decode:true">node server.js</pre>
+
+<h3 id="Dicas"><a href="#Dicas" class="headerlink" title="Dicas"></a>Dicas</h3><p>Você pode por outras pastas no caminho raiz do servidor web de sua aplicação para facilitar o acesso aos assets, como por exemplo, a pasta <span class="lang:default decode:true  crayon-inline ">bower_components</span> , você pode simplesmente digitar a seguinte linha após ou antes da linha 6 no nosso arquivo server.js:</p>
+<pre class="lang:js decode:true ">app.use('/lib', express.static(path.join(__dirname, 'bower_components')));</pre>
+
+<p>E pronto, a rota <strong>/lib </strong>proverá o acesso para todas pastas e arquivos da respectiva pasta, ou seja, ao invés de ter que copiar os arquivos para dentro da pasta <strong>public</strong>, você pode simplesmente, acessar <a href="http://localhost:3000/lib/angular/angular.min.js" target="_blank" rel="external">http://localhost:3000/lib/angular/angular.min.js</a> e vu alá, você tem acesso ao asset que procurava sem ter que fazer nada de muito complicado.</p>
+<p>Bom, espero que tenham gostado, até a próxima! :)</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>&nbsp;</p>
+<p>Assim como eu, provavelmente você já tenha feito a si essa pergunta:</p>
+<blockquote>
+<p>Eu posso criar um simples servidor web utilizando Node.js? Eu só quero algo pra rodar arquivos HTML, carregar os roteiros de códigos de maneira fácil.</p>
+</blockquote>
+<p><strong>Resposta: </strong>Sim, você pode fazer isso com Node.</p>
+<p>Tendo em mente que você deve executar todos esses passos de dentro da pasta do seu projeto. Segue com a gente o passo a passo e veja como é simples!</p>]]>
+    
+    </summary>
+    
+      <category term="Fácil" scheme="http://victorqueiroz.github.io/tags/Facil/"/>
+    
+      <category term="JavaScript" scheme="http://victorqueiroz.github.io/tags/JavaScript/"/>
+    
+      <category term="Node.js" scheme="http://victorqueiroz.github.io/tags/Node-js/"/>
+    
+      <category term="Servidor" scheme="http://victorqueiroz.github.io/tags/Servidor/"/>
+    
+      <category term="Express" scheme="http://victorqueiroz.github.io/categories/Express/"/>
+    
+      <category term="Frameworks" scheme="http://victorqueiroz.github.io/categories/Express/Frameworks/"/>
+    
+      <category term="Node.js" scheme="http://victorqueiroz.github.io/categories/Express/Frameworks/Node-js/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[AngularJS: Diretivas - Saiba o que são e como elas funcionam]]></title>
+    <link href="http://victorqueiroz.github.io/2014/09/16/angularjs-diretivas-saiba-o-que-sao-e-como-elas-funcionam/"/>
+    <id>http://victorqueiroz.github.io/2014/09/16/angularjs-diretivas-saiba-o-que-sao-e-como-elas-funcionam/</id>
+    <published>2014-09-16T06:07:52.000Z</published>
+    <updated>2016-01-21T20:09:37.460Z</updated>
+    <content type="html"><![CDATA[<h3 id="O_que_s_E3o_as_diretivas_3F"><a href="#O_que_s_E3o_as_diretivas_3F" class="headerlink" title="O que são as diretivas?"></a><a href="http://victorqueiroz.co/wp-content/uploads/2014/09/AngularJS-large.png" target="_blank" rel="external"><img src="http://victorqueiroz.co/wp-content/uploads/2014/09/AngularJS-large.png" alt="AngularJS-large"></a>O que são as diretivas?</h3><a id="more"></a>
+<p>Diretivas ou directives (em inglês), são marcadores em um <a href="http://en.wikipedia.org/wiki/Document_Object_Model" target="_blank" rel="external">DOM</a> element (podendo ser um atributo, nome de elemento, comentário ou classe das <a href="http://en.wikipedia.org/wiki/Cascading_Style_Sheets" target="_blank" rel="external">CSS</a>)</p>
+<p>que fala para o Angular <a href="https://docs.angularjs.org/guide/compiler" target="_blank" rel="external"><strong>HTML compiler</strong></a> (<a href="https://docs.angularjs.org/api/ng/service/$compile" target="_blank" rel="external">$compile</a>) anexar um designado conteúdo, ou até mesmo transformar/gerenciar o DOM e suas “childrens”.</p>
+<p>O Angular em si já vem com várias dessas diretivas embutidas. Tais como <code>ngView</code>, <code>ngModel</code>, <code>ngBind</code>, <code>ngRepeat</code>, <code>ngShow</code>, <code>ngHide</code>. Assim como você pode criar os seus controllers/controladores, você também pode criar as suas próprias diretivas para usar no Angular.</p>
+<h3 id="Usando_diretivas"><a href="#Usando_diretivas" class="headerlink" title="Usando diretivas"></a>Usando diretivas</h3><p>Antes de escrevermos uma diretiva, precisamos saber como o Angular <a href="https://docs.angularjs.org/guide/compiler" target="_blank" rel="external">HTML compiler</a> determina quando usar uma dada diretiva.</p>
+<p>No exemplo abaixo, nós estamos dizendo que o elemento <code>&amp;lt;input&amp;gt;</code> corresponde a diretiva <code>ngModel</code>.</p>
+<pre class="lang:js decode:true ">&lt;input type="text" ng-model="foo"&gt;</pre>
+
+<p>O exemplo abaixo também corresponde a diretiva <code>ngModel</code>:</p>
+<div><br><pre class="lang:js decode:true">&lt;input type=”text” data-ng:model=”foo”&gt;</pre><br></div>
+
+<p>Nos referimos a diretivas pelo seu nome <strong>normalizado</strong> (i.e. <code>ngRepeat</code>, <code>minhaDiretivaNumeroUm</code>) em case-sensitive e em <a href="http://pt.wikipedia.org/wiki/CamelCase" target="_blank" rel="external">CamelCase</a>. Contudo, já que o HTML é case-insensitive as diretivas precisam ter seus nomes desnormalizados ou adaptados antes de entrarem no DOM.</p>
+<h4 id="Desnormaliza_E7_E3o"><a href="#Desnormaliza_E7_E3o" class="headerlink" title="Desnormalização"></a>Desnormalização</h4><p>Existem vários processos de desnormalização, um deles é o processo de desnormalização delimitado por traços, que se baseia em substituir as letras maíusculas por letras minúsculas e adicionar um traço antes (.i.e <code>ngRepeat</code>, <code>ngModel</code>, <code>myDirective</code>, se transformam respectivamente em <code>ng-repeat</code>, <code>ng-model</code> e <code>my-directive</code> dentro do DOM), porém é possível adicionar prefixos e outros parâmetros.</p>
+<h4 id="Normaliza_E7_E3o"><a href="#Normaliza_E7_E3o" class="headerlink" title="Normalização"></a>Normalização</h4><p>O processo de normalização serve para traduzir o nome desnormalizado no nome real da diretiva.</p>
+<ol>
+<li>É retirado o x- e data- do começo do element/atributo.</li>
+<li>:, - ou _-x são convertidos em camelCase.</li>
+</ol>
+<p>Onde x no passo DOIS, representa o nome da classe em formato de dash-delimited.</p>
+<p>Ou seja, <code>ng-model</code>, <code>my-directive</code> ou <code>this-is-a-directive</code> são traduzidos para <code>ngModel</code>, <code>myDirective</code> ou <code>thisIsADirective</code>, o contrário do que foi explicado anteriormente, no processo de desnormalização.</p>
+<p>Abaixo você pode ver um exemplo com as combinações possíveis para a diretiva <code>ngBind</code>.</p>
+<div><br><pre class="lang:default decode:true">&lt;div ng-controller=”AppController”&gt;<br>  Hello &lt;input ng-model=’name’&gt; &lt;hr/&gt;<br>  &lt;span ng-bind=”name”&gt;&lt;/span&gt; &lt;br/&gt;<br>  &lt;span ng:bind=”name”&gt;&lt;/span&gt; &lt;br/&gt;<br>  &lt;span ng_bind=”name”&gt;&lt;/span&gt; &lt;br/&gt;<br>  &lt;span data-ng-bind=”name”&gt;&lt;/span&gt; &lt;br/&gt;<br>  &lt;span x-ng-bind=”name”&gt;&lt;/span&gt; &lt;br/&gt;<br>&lt;/div&gt;</pre><br></div>
+
+<p>O <code>$compile</code> suporta diretivas baseadas em nomes de elementos, atributos, classes das CSS e comentários.</p>
+<p>Abaixo você pode ver alguns métodos que você pode utilizar para marcar diretivas:</p>
+<div><br><pre class="lang:default decode:true">&lt;my-dir&gt;&lt;/my-dir&gt;<br>&lt;span my-dir=”exp”&gt;&lt;/span&gt;<br>&lt;!– directive: my-dir exp –&gt;<br>&lt;span class=”my-dir: exp;”&gt;&lt;/span&gt;</pre><br></div>
+
+<h3 id="Vinculando_vari_E1veis_em_atributos"><a href="#Vinculando_vari_E1veis_em_atributos" class="headerlink" title="Vinculando variáveis em atributos"></a>Vinculando variáveis em atributos</h3><p>Em breve!</p>
+<h3 id="Criando_diretivas"><a href="#Criando_diretivas" class="headerlink" title="Criando diretivas"></a>Criando diretivas</h3><p>Primeiro vamos falar a respeito da API utilizada para criação de diretivas. Assim como os controladores, as diretivas são registradas em módulos. Para registrar uma diretiva, você se usa <code>module.directive</code>.</p>
+<p>O module.directive deverá ser aplicado da forma como esta escrito abaixo:</p>
+<div><br><pre class="lang:default decode:true">angular.module(‘app’, [])<br><br>.directive(‘validate’, function() {<br>  return {<br>    template: ‘Esta é a minha primeira diretiva, e eu ainda estou aprendendo.’<br>  };<br>});</pre><br></div>
+
+<p>A definição técnica é <code>module.directive(&#39;directiveNormalizedName&#39;, directiveFunction)</code>, a função aplicada, deverá retornar um objeto.</p>
+<h4 id="Restricts"><a href="#Restricts" class="headerlink" title="Restricts"></a>Restricts</h4><p>As restricts servem para determinar como as suas diretivas serão chamadas. Abaixo está uma lista de possibilidades para as restricts:</p>
+<ul>
+<li><code>&#39;A&#39;</code> - Apenas corresponder por atributo.</li>
+<li><code>&#39;E&#39;</code> - Apenas corresponder pelo nome do elemento.</li>
+<li><code>&#39;C&#39;</code> - Apenas corresponder pela classe das CSS.</li>
+</ul>
+<div><br><pre class="lang:default decode:true">angular.module(‘app’, [])<br><br>.directive(‘validate’, function() {<br>  return {<br>    restrict: ‘E’,<br>    template: ‘Esta é a minha primeira diretiva, e eu ainda estou aprendendo.’<br>  };<br>});</pre><br></div>
+
+<p>Mas você também poderá utilizar <code>AEC</code> e fazer com que sua diretiva corresponda através de todos esses métodos.</p>
+<h3 id="Melhores_pr_E1ticas"><a href="#Melhores_pr_E1ticas" class="headerlink" title="Melhores práticas"></a>Melhores práticas</h3><p>A postagem ainda é breve em relação a este assunto, mas em breve estarei atualizando a postagem, adicionando novas dicas, estarei aumentando a frequência de postagens também.</p>
+<p>Um abraço, aguardo vossos comentários, dúvidas, críticas etc.</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<h3 id="O_que_s_E3o_as_diretivas_3F"><a href="#O_que_s_E3o_as_diretivas_3F" class="headerlink" title="O que são as diretivas?"></a><a href="http://victorqueiroz.co/wp-content/uploads/2014/09/AngularJS-large.png"><img src="http://victorqueiroz.co/wp-content/uploads/2014/09/AngularJS-large.png" alt="AngularJS-large"></a>O que são as diretivas?</h3>]]>
+    
+    </summary>
+    
+      <category term="AngularJS" scheme="http://victorqueiroz.github.io/tags/AngularJS/"/>
+    
+      <category term="Diretivas" scheme="http://victorqueiroz.github.io/tags/Diretivas/"/>
+    
+      <category term="Google" scheme="http://victorqueiroz.github.io/tags/Google/"/>
+    
+      <category term="JavaScript" scheme="http://victorqueiroz.github.io/tags/JavaScript/"/>
+    
+      <category term="AngularJS" scheme="http://victorqueiroz.github.io/categories/AngularJS/"/>
+    
+      <category term="Frameworks" scheme="http://victorqueiroz.github.io/categories/AngularJS/Frameworks/"/>
+    
+      <category term="JavaScript" scheme="http://victorqueiroz.github.io/categories/AngularJS/Frameworks/JavaScript/"/>
+    
+  </entry>
+  
+</feed>

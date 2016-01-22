@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>AngularJS: Criando testes com Jasmine e Karma | Victor Queiroz</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="Antes de mais nada é importante que você leia o artigo Jasmine: Primeiro contato com testes unitários, caso ainda não saiba o que é Jasmine.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AngularJS: Criando testes com Jasmine e Karma">
+<meta property="og:url" content="http://victorqueiroz.github.io/2014/09/18/angularjs-criando-testes-com-jasmine-e-karma/index.html">
+<meta property="og:site_name" content="Victor Queiroz">
+<meta property="og:description" content="Antes de mais nada é importante que você leia o artigo Jasmine: Primeiro contato com testes unitários, caso ainda não saiba o que é Jasmine.">
+<meta property="og:updated_time" content="2016-01-21T20:09:37.460Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="AngularJS: Criando testes com Jasmine e Karma">
+<meta name="twitter:description" content="Antes de mais nada é importante que você leia o artigo Jasmine: Primeiro contato com testes unitários, caso ainda não saiba o que é Jasmine.">
+  
+    <link rel="alternative" href="/atom.xml" title="Victor Queiroz" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+  
+
+</head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Victor Queiroz</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Artigos</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://victorqueiroz.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-angularjs-criando-testes-com-jasmine-e-karma" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2014/09/18/angularjs-criando-testes-com-jasmine-e-karma/" class="article-date">
+  <time datetime="2014-09-18T03:33:04.000Z" itemprop="datePublished">18-09-2014</time>
+</a>
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      AngularJS: Criando testes com Jasmine e Karma
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>Antes de mais nada é importante que você leia o artigo <a href="http://victorqueiroz.co/jasmine-primeiro-contato-com-testes-unitarios/" target="_blank" rel="external">Jasmine: Primeiro contato com testes unitários</a>, caso ainda não saiba o que é Jasmine.</p>
+</blockquote>
+<a id="more"></a>
+<h2 id="Depend_EAncias"><a href="#Depend_EAncias" class="headerlink" title="Dependências"></a>Dependências</h2><ul>
+<li><a href="https://docs.angularjs.org/api/ngMock" target="_blank" rel="external">angular-mocks</a></li>
+</ul>
+<h2 id="Escrevendo_testes"><a href="#Escrevendo_testes" class="headerlink" title="Escrevendo testes"></a>Escrevendo testes</h2><p>É bem simples, é importante que você utilize o <span class="lang:js decode:true  crayon-inline">beforeEach()</span>  do Jasmine, o <span class="lang:js decode:true  crayon-inline ">module</span>  e o <span class="lang:js decode:true  crayon-inline">inject</span>  do <strong>angular-mocks</strong>, e o <span class="lang:js decode:true  crayon-inline ">$injector</span>  do próprio angular para carregar todas as dependências necessárias.</p>
+<p>Veja um simples exemplo em que eu carrego um serviço de dentro de um módulo:</p>
+<p><pre class="lang:js decode:true ">describe(‘app module’, function () {<br>  var User;</pre></p>
+<p>  beforeEach(module(‘app’));</p>
+<p>  beforeEach(inject(function ($injector) {<br>    User = $injector.get(‘User’);<br>  }));</p>
+<p>  it(‘should have a User service’, function () {<br>    expect(typeof User.$get).toEqual(‘function’);<br>  });<br>});<br>Vejam que na linha 4 nós carregamos o módulo, é importante lembrar que caso este módulo utilize serviços de um outro módulo, ele terá que ser carregado também, basta adicionar abaixo do <span class="lang:js decode:true  crayon-inline ">beforeEach</span>  em que carregamos o módulo principal e o seu problema estará resolvido.</p>
+<p>Na linha 6, nós injetamos através do <span class="lang:js decode:true  crayon-inline ">inject</span> o <span class="lang:js decode:true  crayon-inline ">$injector</span>  na função, o <span class="lang:js decode:true  crayon-inline">inject</span> pode ser utilizado em qualquer lugar do seu teste. A partir daí você poderá importar o <span class="lang:js decode:true  crayon-inline">$compile</span> caso queira compilar diretivas no DOM, o <span class="lang:js decode:true  crayon-inline ">$rootScope</span> caso queira criar um <span class="lang:js decode:true  crayon-inline ">$scope</span> para compilar as diretivas.</p>
+<h2 id="Rodando_seus_testes_com_o_Karma_Runner"><a href="#Rodando_seus_testes_com_o_Karma_Runner" class="headerlink" title="Rodando seus testes com o Karma Runner"></a>Rodando seus testes com o Karma Runner</h2><h3 id="Instalando_o_Karma"><a href="#Instalando_o_Karma" class="headerlink" title="Instalando o Karma"></a>Instalando o Karma</h3><p>Você deve instalar o Karma via npm globalmente:</p>
+<p><pre class="lang:sh decode:true">npm instal -g karma</pre><br>E localmente no seu projeto (ou ele não irá funcionar):</p>
+<p><pre class="lang:sh decode:true">npm install –save-dev karma</pre><br>Criando um arquivo de configuração do Karma</p>
+<p>É algo simplesmente simples (?) e rápido! Vá até a pasta raiz do seu projeto e digite:</p>
+<p><pre class="lang:sh decode:true">karma init</pre><br>Preencha todas as perguntas e BUM, você tem um arquivo de configuração do Karma.</p>
+<h3 id="Rodando_os_testes_com_o_Karma"><a href="#Rodando_os_testes_com_o_Karma" class="headerlink" title="Rodando os testes com o Karma"></a>Rodando os testes com o Karma</h3><p>Mais uma das maravilhas do CLI do Karma:</p>
+<p><pre class="lang:sh decode:true ">karma start –no-single-run –log-level debug</pre><br>Você pode trocar o parâmetro <span class="lang:sh decode:true  crayon-inline ">–no-single-run</span>  por <span class="lang:sh decode:true  crayon-inline ">–single-run</span> , e ele não ficará assistindo as mudanças que ocorrerão nos seus arquivos para reiniciar os testes, inclusive é importante deixar que o padrão seja <span class="lang:sh decode:true  crayon-inline ">–single-run</span>  para caso tenha planos de usar algum sistema de <strong>Continuous Integration</strong>, caso contrário, ele pode retornar como se os testes estivessem falhados quando ele apenas parou os testes para assistir as mudanças dos arquivos.</p>
+<h3 id="Finaliza_E7_E3o_e_dicas"><a href="#Finaliza_E7_E3o_e_dicas" class="headerlink" title="Finalização e dicas"></a>Finalização e dicas</h3><p>Tenha em mente de que você terá que configurar o seu arquivo de configuração do Karma (geralmente karma.conf.js, localizado na pasta raiz do seu projeto) para carregar o <strong>angular</strong> e o <strong>angular-mocks</strong>, e todos os outros assets que você carrega para fazer seus módulos funcionarem corretamente, é claro.</p>
+<p>O seu arquivo de testes deve ser parecido com o do exemplo acima, e qualquer dúvida você pode ler a documentação do angular-mocks OU pode vir aqui e deixar o seu comentário e eu terei um imenso prazer em lhe responder.</p>
+<p>Quaisquer dúvidas, deixem abaixo nos comentários ou enviem-me e-mails, um abraço e até a próxima!</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://victorqueiroz.github.io/2014/09/18/angularjs-criando-testes-com-jasmine-e-karma/" data-id="cijpi8pgz002wqt203dnbcdq9" class="article-share-link">Share</a>
+      
+        <a href="http://victorqueiroz.github.io/2014/09/18/angularjs-criando-testes-com-jasmine-e-karma/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Jasmine/">Jasmine</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JavaScript/">JavaScript</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Testes-unitarios/">Testes unitários</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2014/09/25/angularjs-jasmine-karma-testando-diretivas/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          AngularJS, Jasmine, Karma: Testando diretivas
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2014/09/17/jasmine-primeiro-contato-com-testes-unitarios/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Jasmine: Primeiro contato com testes unitários</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<section id="comments">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categorias</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/AngularJS/">AngularJS</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/AngularJS/Frameworks/">Frameworks</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/AngularJS/Frameworks/JavaScript/">JavaScript</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/AngularJS/Frameworks/JavaScript/Testes-unitarios/">Testes unitários</a><span class="category-list-count">1</span></li></ul></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Automatizadores-de-Tarefas/">Automatizadores de Tarefas</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Automatizadores-de-Tarefas/JavaScript/">JavaScript</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Debian/">Debian</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Debian/Linux/">Linux</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Debian/Linux/Sistemas-Operacionais/">Sistemas Operacionais</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Debian/Linux/Sistemas-Operacionais/Unix/">Unix</a><span class="category-list-count">1</span></li></ul></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Express/">Express</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Express/Frameworks/">Frameworks</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Express/Frameworks/Node-js/">Node.js</a><span class="category-list-count">1</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/JavaScript/">JavaScript</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/JavaScript/Testes-unitarios/">Testes unitários</a><span class="category-list-count">1</span></li></ul></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AngularJS/">AngularJS</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Broadcom/">Broadcom</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Configuracao/">Configuração</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Debian/">Debian</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Diretivas/">Diretivas</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Facil/">Fácil</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Google/">Google</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Grunt/">Grunt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Instalacao/">Instalação</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Jasmine/">Jasmine</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/">JavaScript</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kernel/">Kernel</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/">Linux</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Node-js/">Node.js</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Placa-de-rede/">Placa de rede</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Servidor/">Servidor</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Teste-de-unidade/">Teste de unidade</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Testes-unitarios/">Testes unitários</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ubuntu/">Ubuntu</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Wireless/">Wireless</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/directives/">directives</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/gridfs/">gridfs</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/gulp-js/">gulp.js</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/">images</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mongodb/">mongodb</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mongodb-node/">mongodb node</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/modulos/">módulos</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/specification/">specification</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/store/">store</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Artigos</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">Janeiro 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">Setembro 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">Novembro 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">Setembro 2014</a><span class="archive-list-count">7</span></li></ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2016 Victor Queiroz<br>
+      Criado com <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Artigos</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'victorqueirozg';
+  
+  var disqus_url = 'http://victorqueiroz.github.io/2014/09/18/angularjs-criando-testes-com-jasmine-e-karma/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js" type="text/javascript"></script>
+
+
+<script src="/js/script.js" type="text/javascript"></script>
+
+  </div>
+</body>
+</html>

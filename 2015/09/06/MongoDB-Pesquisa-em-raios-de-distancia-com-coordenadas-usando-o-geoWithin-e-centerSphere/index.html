@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>MongoDB: Pesquisa em raios de distância com coordenadas usando o $geoWithin e $centerSphere | Victor Queiroz</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="Recentemente eu me deparei com o seguinte problema:
+Eu precisava verificar se uma lista de coordenadas estava ou não dentro de um dado raio de distância. A princípio eu pensei em utilizar a API do Goo">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MongoDB: Pesquisa em raios de distância com coordenadas usando o $geoWithin e $centerSphere">
+<meta property="og:url" content="http://victorqueiroz.github.io/2015/09/06/MongoDB-Pesquisa-em-raios-de-distancia-com-coordenadas-usando-o-geoWithin-e-centerSphere/index.html">
+<meta property="og:site_name" content="Victor Queiroz">
+<meta property="og:description" content="Recentemente eu me deparei com o seguinte problema:
+Eu precisava verificar se uma lista de coordenadas estava ou não dentro de um dado raio de distância. A princípio eu pensei em utilizar a API do Goo">
+<meta property="og:updated_time" content="2016-01-21T20:09:37.460Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MongoDB: Pesquisa em raios de distância com coordenadas usando o $geoWithin e $centerSphere">
+<meta name="twitter:description" content="Recentemente eu me deparei com o seguinte problema:
+Eu precisava verificar se uma lista de coordenadas estava ou não dentro de um dado raio de distância. A princípio eu pensei em utilizar a API do Goo">
+  
+    <link rel="alternative" href="/atom.xml" title="Victor Queiroz" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+  
+
+</head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Victor Queiroz</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Artigos</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://victorqueiroz.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-MongoDB-Pesquisa-em-raios-de-distancia-com-coordenadas-usando-o-geoWithin-e-centerSphere" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2015/09/06/MongoDB-Pesquisa-em-raios-de-distancia-com-coordenadas-usando-o-geoWithin-e-centerSphere/" class="article-date">
+  <time datetime="2015-09-07T02:46:05.000Z" itemprop="datePublished">06-09-2015</time>
+</a>
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      MongoDB: Pesquisa em raios de distância com coordenadas usando o $geoWithin e $centerSphere
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Recentemente eu me deparei com o seguinte problema:</p>
+<p>Eu precisava verificar se uma lista de coordenadas estava ou não dentro de um dado raio de distância. A princípio eu pensei em utilizar a API do Google Maps, porém a única funcionalidade que faz esse tipo de pesquisa está disponível apenas na versão JavaScript, e a minha API estava escrita em Node.js e ficaria um pouco complicado de utilizar mais da cota para fazer uma pesquisa geográfica… Até que eu descobri o <code>$centerSphere</code> e o <code>$geoWithin</code> do MongoDB, e foi aí que eu vi que realmente MongoDB é o banco de dados do futuro… Hahaha.<br><a id="more"></a></p>
+<h3 id="Requisitos"><a href="#Requisitos" class="headerlink" title="Requisitos"></a>Requisitos</h3><ul>
+<li>MongoDB 3.0</li>
+</ul>
+<p>Primeiramente, como diz na documentação do MongoDB, a respeito do <a href="http://docs.mongodb.org/manual/reference/operator/query/centerSphere/" target="_blank" rel="external">$centerSphere</a>, é necessário saber que as coordenadas de latitude e longitude devem estar dentro de um <code>Array</code> para que o MongoDB possa fazer a pesquisa, mais ou menos da seguinte forma:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	<span class="string">"name"</span>: <span class="string">"Victor Queiroz"</span>,</span><br><span class="line">	<span class="string">"address"</span>: &#123;</span><br><span class="line">		<span class="string">"coords"</span>: [</span><br><span class="line">			<span class="number">7.0202512</span>,</span><br><span class="line">			<span class="number">4.8499534</span></span><br><span class="line">		]</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>A consulta deve ser escrita da seguinte forma:<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> coords = [</span><br><span class="line">	<span class="number">7.0398232</span>,</span><br><span class="line">	<span class="number">4.8492161</span></span><br><span class="line">];</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> miles = <span class="number">1.8</span>;</span><br><span class="line"></span><br><span class="line">db.users.find(&#123;</span><br><span class="line">	<span class="string">'address.coords'</span>: &#123;</span><br><span class="line">		$geoWithin: &#123;</span><br><span class="line">			$centerSphere: [</span><br><span class="line">				coords,</span><br><span class="line">				miles / <span class="number">3963.2</span></span><br><span class="line">			]</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure></p>
+<p>O MongoDB vai definir um círculo de X milhas, sendo <code>coords</code> o centro do raio, e fará uma pesquisa dentro de <code>address.coords</code> procurando por coordenadas que estejam presentes dentro desse círculo.</p>
+<p>No caso eu defini um raio de 1.8 milhas, que equivalem a 3km, novamente: <strong>Ele irá me retornar todos os documentos que estiverem dentro deste raio</strong>.</p>
+<p><strong>Lembre-se que a longitude deve estar ANTES da latitude dentro das listas.</strong></p>
+<p>Abaixo estão algumas descrições básicas sobre os operadores que utilizamos nessa consulta:</p>
+<h3 id="24centerSphere"><a href="#24centerSphere" class="headerlink" title="$centerSphere"></a>$centerSphere</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	<span class="xml"><span class="tag">&lt;<span class="title">location</span> <span class="attribute">field</span>&gt;</span>: &#123;</span><br><span class="line">		$geoWithin: &#123; $centerSphere: [ [ <span class="tag">&lt;<span class="title">x</span>&gt;</span>, <span class="tag">&lt;<span class="title">y</span>&gt;</span> ]</span>, <span class="xml"><span class="tag">&lt;<span class="title">radius</span>&gt;</span> ]</span> &#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Define um círculo para qualquer consulta geoespacial que utilize <a href="https://pt.wikipedia.org/wiki/Geometria_esf%C3%A9rica" target="_blank" rel="external">geometria esférica</a>.</p>
+<h3 id="24geoWithin"><a href="#24geoWithin" class="headerlink" title="$geoWithin"></a>$geoWithin</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	<span class="xml"><span class="tag">&lt;<span class="title">location</span> <span class="attribute">field</span>&gt;</span>: &#123;</span><br><span class="line">		$geoWithin: &#123;</span><br><span class="line">			$geometry: &#123;</span><br><span class="line">				type: <span class="tag">&lt;<span class="title">"Polygon"</span> <span class="attribute">or</span> "<span class="attribute">MultiPolygon</span>"&gt;</span> ,</span><br><span class="line">				coordinates: [ <span class="tag">&lt;<span class="title">coordinates</span>&gt;</span> ]</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Seleciona o documento com dados geoespaciais que existem inteiramente em um formato especificado. Ao determinar a inclusão, o MongoDB considera a fronteira de uma forma como se fosse parte da forma, sujeito à precisão dos números de ponto flutuante.</p>
+<p>Para mais informações, acesse a <a href="https://docs.mongodb.org/manual/reference/operator/query/geoWithin/" target="_blank" rel="external">documentação</a> oficial do MongoDB e leia a respeito.</p>
+<p>Espero que o artigo ajude a muitos da forma como me ajudou. Abraços.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://victorqueiroz.github.io/2015/09/06/MongoDB-Pesquisa-em-raios-de-distancia-com-coordenadas-usando-o-geoWithin-e-centerSphere/" data-id="cijpi8ph50039qt204b9t0zfl" class="article-share-link">Share</a>
+      
+        <a href="http://victorqueiroz.github.io/2015/09/06/MongoDB-Pesquisa-em-raios-de-distancia-com-coordenadas-usando-o-geoWithin-e-centerSphere/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/mongodb-node/">mongodb node</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/01/22/MongoDB-Como-utilizar-o-MongoDB-como-um-servidor-de-imagens/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          MongoDB: Como utilizar o MongoDB como um servidor de imagens
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2014/11/02/angularjs-1-3-conhecendo-os-validadores-assincronos/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">AngularJS 1.3: Conhecendo os validadores assíncronos</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<section id="comments">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categorias</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/AngularJS/">AngularJS</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/AngularJS/Frameworks/">Frameworks</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/AngularJS/Frameworks/JavaScript/">JavaScript</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/AngularJS/Frameworks/JavaScript/Testes-unitarios/">Testes unitários</a><span class="category-list-count">1</span></li></ul></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Automatizadores-de-Tarefas/">Automatizadores de Tarefas</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Automatizadores-de-Tarefas/JavaScript/">JavaScript</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Debian/">Debian</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Debian/Linux/">Linux</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Debian/Linux/Sistemas-Operacionais/">Sistemas Operacionais</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Debian/Linux/Sistemas-Operacionais/Unix/">Unix</a><span class="category-list-count">1</span></li></ul></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Express/">Express</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Express/Frameworks/">Frameworks</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Express/Frameworks/Node-js/">Node.js</a><span class="category-list-count">1</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/JavaScript/">JavaScript</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/JavaScript/Testes-unitarios/">Testes unitários</a><span class="category-list-count">1</span></li></ul></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AngularJS/">AngularJS</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Broadcom/">Broadcom</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Configuracao/">Configuração</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Debian/">Debian</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Diretivas/">Diretivas</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Facil/">Fácil</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Google/">Google</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Grunt/">Grunt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Instalacao/">Instalação</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Jasmine/">Jasmine</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/">JavaScript</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kernel/">Kernel</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/">Linux</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Node-js/">Node.js</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Placa-de-rede/">Placa de rede</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Servidor/">Servidor</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Teste-de-unidade/">Teste de unidade</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Testes-unitarios/">Testes unitários</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ubuntu/">Ubuntu</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Wireless/">Wireless</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/directives/">directives</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/gridfs/">gridfs</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/gulp-js/">gulp.js</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/">images</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mongodb/">mongodb</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mongodb-node/">mongodb node</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/modulos/">módulos</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/specification/">specification</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/store/">store</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Artigos</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">Janeiro 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">Setembro 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">Novembro 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">Setembro 2014</a><span class="archive-list-count">7</span></li></ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2016 Victor Queiroz<br>
+      Criado com <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Artigos</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'victorqueirozg';
+  
+  var disqus_url = 'http://victorqueiroz.github.io/2015/09/06/MongoDB-Pesquisa-em-raios-de-distancia-com-coordenadas-usando-o-geoWithin-e-centerSphere/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js" type="text/javascript"></script>
+
+
+<script src="/js/script.js" type="text/javascript"></script>
+
+  </div>
+</body>
+</html>

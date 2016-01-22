@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+  <url>
+    <loc>http://victorqueiroz.github.io/2016/01/22/MongoDB-Como-utilizar-o-MongoDB-como-um-servidor-de-imagens/</loc>
+    <lastmod>2016-01-22T09:48:04.363Z</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://victorqueiroz.github.io/2014/09/16/node-js-criando-um-simples-servidor-web-com-express-4/</loc>
+    <lastmod>2016-01-21T20:09:37.464Z</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://victorqueiroz.github.io/2014/09/17/jasmine-primeiro-contato-com-testes-unitarios/</loc>
+    <lastmod>2016-01-21T20:09:37.464Z</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://victorqueiroz.github.io/2014/09/16/gulp-js-um-automatizador-de-tarefas/</loc>
+    <lastmod>2016-01-21T20:09:37.464Z</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://victorqueiroz.github.io/2014/09/28/configurando-o-wi-fi-com-uma-broadcom-bcm4312-no-debian/</loc>
+    <lastmod>2016-01-21T20:09:37.464Z</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://victorqueiroz.github.io/2014/09/25/angularjs-jasmine-karma-testando-diretivas/</loc>
+    <lastmod>2016-01-21T20:09:37.460Z</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://victorqueiroz.github.io/2014/09/16/angularjs-diretivas-saiba-o-que-sao-e-como-elas-funcionam/</loc>
+    <lastmod>2016-01-21T20:09:37.460Z</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://victorqueiroz.github.io/2014/09/18/angularjs-criando-testes-com-jasmine-e-karma/</loc>
+    <lastmod>2016-01-21T20:09:37.460Z</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://victorqueiroz.github.io/2014/11/02/angularjs-1-3-conhecendo-os-validadores-assincronos/</loc>
+    <lastmod>2016-01-21T20:09:37.460Z</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://victorqueiroz.github.io/2015/09/06/MongoDB-Pesquisa-em-raios-de-distancia-com-coordenadas-usando-o-geoWithin-e-centerSphere/</loc>
+    <lastmod>2016-01-21T20:09:37.460Z</lastmod>
+  </url>
+  
+</urlset>

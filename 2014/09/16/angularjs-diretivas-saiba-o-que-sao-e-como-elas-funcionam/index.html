@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>AngularJS: Diretivas - Saiba o que são e como elas funcionam | Victor Queiroz</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="O que são as diretivas?">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AngularJS: Diretivas - Saiba o que são e como elas funcionam">
+<meta property="og:url" content="http://victorqueiroz.github.io/2014/09/16/angularjs-diretivas-saiba-o-que-sao-e-como-elas-funcionam/index.html">
+<meta property="og:site_name" content="Victor Queiroz">
+<meta property="og:description" content="O que são as diretivas?">
+<meta property="og:image" content="http://victorqueiroz.co/wp-content/uploads/2014/09/AngularJS-large.png">
+<meta property="og:updated_time" content="2016-01-21T20:09:37.460Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="AngularJS: Diretivas - Saiba o que são e como elas funcionam">
+<meta name="twitter:description" content="O que são as diretivas?">
+  
+    <link rel="alternative" href="/atom.xml" title="Victor Queiroz" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+  
+
+</head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Victor Queiroz</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Artigos</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://victorqueiroz.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-angularjs-diretivas-saiba-o-que-sao-e-como-elas-funcionam" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2014/09/16/angularjs-diretivas-saiba-o-que-sao-e-como-elas-funcionam/" class="article-date">
+  <time datetime="2014-09-16T06:07:52.000Z" itemprop="datePublished">16-09-2014</time>
+</a>
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      AngularJS: Diretivas - Saiba o que são e como elas funcionam
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="O_que_s_E3o_as_diretivas_3F"><a href="#O_que_s_E3o_as_diretivas_3F" class="headerlink" title="O que são as diretivas?"></a><a href="http://victorqueiroz.co/wp-content/uploads/2014/09/AngularJS-large.png" target="_blank" rel="external"><img src="http://victorqueiroz.co/wp-content/uploads/2014/09/AngularJS-large.png" alt="AngularJS-large"></a>O que são as diretivas?</h3><a id="more"></a>
+<p>Diretivas ou directives (em inglês), são marcadores em um <a href="http://en.wikipedia.org/wiki/Document_Object_Model" target="_blank" rel="external">DOM</a> element (podendo ser um atributo, nome de elemento, comentário ou classe das <a href="http://en.wikipedia.org/wiki/Cascading_Style_Sheets" target="_blank" rel="external">CSS</a>)</p>
+<p>que fala para o Angular <a href="https://docs.angularjs.org/guide/compiler" target="_blank" rel="external"><strong>HTML compiler</strong></a> (<a href="https://docs.angularjs.org/api/ng/service/$compile" target="_blank" rel="external">$compile</a>) anexar um designado conteúdo, ou até mesmo transformar/gerenciar o DOM e suas “childrens”.</p>
+<p>O Angular em si já vem com várias dessas diretivas embutidas. Tais como <code>ngView</code>, <code>ngModel</code>, <code>ngBind</code>, <code>ngRepeat</code>, <code>ngShow</code>, <code>ngHide</code>. Assim como você pode criar os seus controllers/controladores, você também pode criar as suas próprias diretivas para usar no Angular.</p>
+<h3 id="Usando_diretivas"><a href="#Usando_diretivas" class="headerlink" title="Usando diretivas"></a>Usando diretivas</h3><p>Antes de escrevermos uma diretiva, precisamos saber como o Angular <a href="https://docs.angularjs.org/guide/compiler" target="_blank" rel="external">HTML compiler</a> determina quando usar uma dada diretiva.</p>
+<p>No exemplo abaixo, nós estamos dizendo que o elemento <code>&amp;lt;input&amp;gt;</code> corresponde a diretiva <code>ngModel</code>.</p>
+<pre class="lang:js decode:true ">&lt;input type="text" ng-model="foo"&gt;</pre>
+
+<p>O exemplo abaixo também corresponde a diretiva <code>ngModel</code>:</p>
+<div><br><pre class="lang:js decode:true">&lt;input type=”text” data-ng:model=”foo”&gt;</pre><br></div>
+
+<p>Nos referimos a diretivas pelo seu nome <strong>normalizado</strong> (i.e. <code>ngRepeat</code>, <code>minhaDiretivaNumeroUm</code>) em case-sensitive e em <a href="http://pt.wikipedia.org/wiki/CamelCase" target="_blank" rel="external">CamelCase</a>. Contudo, já que o HTML é case-insensitive as diretivas precisam ter seus nomes desnormalizados ou adaptados antes de entrarem no DOM.</p>
+<h4 id="Desnormaliza_E7_E3o"><a href="#Desnormaliza_E7_E3o" class="headerlink" title="Desnormalização"></a>Desnormalização</h4><p>Existem vários processos de desnormalização, um deles é o processo de desnormalização delimitado por traços, que se baseia em substituir as letras maíusculas por letras minúsculas e adicionar um traço antes (.i.e <code>ngRepeat</code>, <code>ngModel</code>, <code>myDirective</code>, se transformam respectivamente em <code>ng-repeat</code>, <code>ng-model</code> e <code>my-directive</code> dentro do DOM), porém é possível adicionar prefixos e outros parâmetros.</p>
+<h4 id="Normaliza_E7_E3o"><a href="#Normaliza_E7_E3o" class="headerlink" title="Normalização"></a>Normalização</h4><p>O processo de normalização serve para traduzir o nome desnormalizado no nome real da diretiva.</p>
+<ol>
+<li>É retirado o x- e data- do começo do element/atributo.</li>
+<li>:, - ou _-x são convertidos em camelCase.</li>
+</ol>
+<p>Onde x no passo DOIS, representa o nome da classe em formato de dash-delimited.</p>
+<p>Ou seja, <code>ng-model</code>, <code>my-directive</code> ou <code>this-is-a-directive</code> são traduzidos para <code>ngModel</code>, <code>myDirective</code> ou <code>thisIsADirective</code>, o contrário do que foi explicado anteriormente, no processo de desnormalização.</p>
+<p>Abaixo você pode ver um exemplo com as combinações possíveis para a diretiva <code>ngBind</code>.</p>
+<div><br><pre class="lang:default decode:true">&lt;div ng-controller=”AppController”&gt;<br>  Hello &lt;input ng-model=’name’&gt; &lt;hr/&gt;<br>  &lt;span ng-bind=”name”&gt;&lt;/span&gt; &lt;br/&gt;<br>  &lt;span ng:bind=”name”&gt;&lt;/span&gt; &lt;br/&gt;<br>  &lt;span ng_bind=”name”&gt;&lt;/span&gt; &lt;br/&gt;<br>  &lt;span data-ng-bind=”name”&gt;&lt;/span&gt; &lt;br/&gt;<br>  &lt;span x-ng-bind=”name”&gt;&lt;/span&gt; &lt;br/&gt;<br>&lt;/div&gt;</pre><br></div>
+
+<p>O <code>$compile</code> suporta diretivas baseadas em nomes de elementos, atributos, classes das CSS e comentários.</p>
+<p>Abaixo você pode ver alguns métodos que você pode utilizar para marcar diretivas:</p>
+<div><br><pre class="lang:default decode:true">&lt;my-dir&gt;&lt;/my-dir&gt;<br>&lt;span my-dir=”exp”&gt;&lt;/span&gt;<br>&lt;!– directive: my-dir exp –&gt;<br>&lt;span class=”my-dir: exp;”&gt;&lt;/span&gt;</pre><br></div>
+
+<h3 id="Vinculando_vari_E1veis_em_atributos"><a href="#Vinculando_vari_E1veis_em_atributos" class="headerlink" title="Vinculando variáveis em atributos"></a>Vinculando variáveis em atributos</h3><p>Em breve!</p>
+<h3 id="Criando_diretivas"><a href="#Criando_diretivas" class="headerlink" title="Criando diretivas"></a>Criando diretivas</h3><p>Primeiro vamos falar a respeito da API utilizada para criação de diretivas. Assim como os controladores, as diretivas são registradas em módulos. Para registrar uma diretiva, você se usa <code>module.directive</code>.</p>
+<p>O module.directive deverá ser aplicado da forma como esta escrito abaixo:</p>
+<div><br><pre class="lang:default decode:true">angular.module(‘app’, [])<br><br>.directive(‘validate’, function() {<br>  return {<br>    template: ‘Esta é a minha primeira diretiva, e eu ainda estou aprendendo.’<br>  };<br>});</pre><br></div>
+
+<p>A definição técnica é <code>module.directive(&#39;directiveNormalizedName&#39;, directiveFunction)</code>, a função aplicada, deverá retornar um objeto.</p>
+<h4 id="Restricts"><a href="#Restricts" class="headerlink" title="Restricts"></a>Restricts</h4><p>As restricts servem para determinar como as suas diretivas serão chamadas. Abaixo está uma lista de possibilidades para as restricts:</p>
+<ul>
+<li><code>&#39;A&#39;</code> - Apenas corresponder por atributo.</li>
+<li><code>&#39;E&#39;</code> - Apenas corresponder pelo nome do elemento.</li>
+<li><code>&#39;C&#39;</code> - Apenas corresponder pela classe das CSS.</li>
+</ul>
+<div><br><pre class="lang:default decode:true">angular.module(‘app’, [])<br><br>.directive(‘validate’, function() {<br>  return {<br>    restrict: ‘E’,<br>    template: ‘Esta é a minha primeira diretiva, e eu ainda estou aprendendo.’<br>  };<br>});</pre><br></div>
+
+<p>Mas você também poderá utilizar <code>AEC</code> e fazer com que sua diretiva corresponda através de todos esses métodos.</p>
+<h3 id="Melhores_pr_E1ticas"><a href="#Melhores_pr_E1ticas" class="headerlink" title="Melhores práticas"></a>Melhores práticas</h3><p>A postagem ainda é breve em relação a este assunto, mas em breve estarei atualizando a postagem, adicionando novas dicas, estarei aumentando a frequência de postagens também.</p>
+<p>Um abraço, aguardo vossos comentários, dúvidas, críticas etc.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://victorqueiroz.github.io/2014/09/16/angularjs-diretivas-saiba-o-que-sao-e-como-elas-funcionam/" data-id="cijpi8pgv002nqt20fdze0lzv" class="article-share-link">Share</a>
+      
+        <a href="http://victorqueiroz.github.io/2014/09/16/angularjs-diretivas-saiba-o-que-sao-e-como-elas-funcionam/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AngularJS/">AngularJS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Diretivas/">Diretivas</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Google/">Google</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JavaScript/">JavaScript</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2014/09/16/node-js-criando-um-simples-servidor-web-com-express-4/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Node.js - Criando um simples servidor web com Express 4
+        
+      </div>
+    </a>
+  
+  
+</nav>
+
+  
+</article>
+
+
+<section id="comments">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categorias</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/AngularJS/">AngularJS</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/AngularJS/Frameworks/">Frameworks</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/AngularJS/Frameworks/JavaScript/">JavaScript</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/AngularJS/Frameworks/JavaScript/Testes-unitarios/">Testes unitários</a><span class="category-list-count">1</span></li></ul></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Automatizadores-de-Tarefas/">Automatizadores de Tarefas</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Automatizadores-de-Tarefas/JavaScript/">JavaScript</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Debian/">Debian</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Debian/Linux/">Linux</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Debian/Linux/Sistemas-Operacionais/">Sistemas Operacionais</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Debian/Linux/Sistemas-Operacionais/Unix/">Unix</a><span class="category-list-count">1</span></li></ul></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Express/">Express</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Express/Frameworks/">Frameworks</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Express/Frameworks/Node-js/">Node.js</a><span class="category-list-count">1</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/JavaScript/">JavaScript</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/JavaScript/Testes-unitarios/">Testes unitários</a><span class="category-list-count">1</span></li></ul></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AngularJS/">AngularJS</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Broadcom/">Broadcom</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Configuracao/">Configuração</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Debian/">Debian</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Diretivas/">Diretivas</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Facil/">Fácil</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Google/">Google</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Grunt/">Grunt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Instalacao/">Instalação</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Jasmine/">Jasmine</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/">JavaScript</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kernel/">Kernel</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/">Linux</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Node-js/">Node.js</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Placa-de-rede/">Placa de rede</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Servidor/">Servidor</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Teste-de-unidade/">Teste de unidade</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Testes-unitarios/">Testes unitários</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ubuntu/">Ubuntu</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Wireless/">Wireless</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/directives/">directives</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/gridfs/">gridfs</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/gulp-js/">gulp.js</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/">images</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mongodb/">mongodb</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mongodb-node/">mongodb node</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/modulos/">módulos</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/specification/">specification</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/store/">store</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Artigos</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">Janeiro 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">Setembro 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">Novembro 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">Setembro 2014</a><span class="archive-list-count">7</span></li></ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2016 Victor Queiroz<br>
+      Criado com <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Artigos</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'victorqueirozg';
+  
+  var disqus_url = 'http://victorqueiroz.github.io/2014/09/16/angularjs-diretivas-saiba-o-que-sao-e-como-elas-funcionam/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js" type="text/javascript"></script>
+
+
+<script src="/js/script.js" type="text/javascript"></script>
+
+  </div>
+</body>
+</html>

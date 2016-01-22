@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Node.js - Criando um simples servidor web com Express 4 | Victor Queiroz</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="&amp;nbsp;
+Assim como eu, provavelmente você já tenha feito a si essa pergunta:
+
+Eu posso criar um simples servidor web utilizando Node.js? Eu só quero algo pra rodar arquivos HTML, carregar os roteiros d">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Node.js - Criando um simples servidor web com Express 4">
+<meta property="og:url" content="http://victorqueiroz.github.io/2014/09/16/node-js-criando-um-simples-servidor-web-com-express-4/index.html">
+<meta property="og:site_name" content="Victor Queiroz">
+<meta property="og:description" content="&amp;nbsp;
+Assim como eu, provavelmente você já tenha feito a si essa pergunta:
+
+Eu posso criar um simples servidor web utilizando Node.js? Eu só quero algo pra rodar arquivos HTML, carregar os roteiros d">
+<meta property="og:updated_time" content="2016-01-21T20:09:37.464Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Node.js - Criando um simples servidor web com Express 4">
+<meta name="twitter:description" content="&amp;nbsp;
+Assim como eu, provavelmente você já tenha feito a si essa pergunta:
+
+Eu posso criar um simples servidor web utilizando Node.js? Eu só quero algo pra rodar arquivos HTML, carregar os roteiros d">
+  
+    <link rel="alternative" href="/atom.xml" title="Victor Queiroz" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+  
+
+</head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Victor Queiroz</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Artigos</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://victorqueiroz.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-node-js-criando-um-simples-servidor-web-com-express-4" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2014/09/16/node-js-criando-um-simples-servidor-web-com-express-4/" class="article-date">
+  <time datetime="2014-09-16T07:59:50.000Z" itemprop="datePublished">16-09-2014</time>
+</a>
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Node.js - Criando um simples servidor web com Express 4
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>&nbsp;</p>
+<p>Assim como eu, provavelmente você já tenha feito a si essa pergunta:</p>
+<blockquote>
+<p>Eu posso criar um simples servidor web utilizando Node.js? Eu só quero algo pra rodar arquivos HTML, carregar os roteiros de códigos de maneira fácil.</p>
+</blockquote>
+<p><strong>Resposta: </strong>Sim, você pode fazer isso com Node.</p>
+<p>Tendo em mente que você deve executar todos esses passos de dentro da pasta do seu projeto. Segue com a gente o passo a passo e veja como é simples!</p>
+<a id="more"></a>
+<h3 id="Criando_o_package-json__28opcional_29"><a href="#Criando_o_package-json__28opcional_29" class="headerlink" title="Criando o package.json (opcional)"></a>Criando o package.json (opcional)</h3><p>É apenas simples e fácil assim como o próximo passo. Vá até a linha de comando e digite:</p>
+<pre class="lang:sh decode:true ">npm init</pre>
+
+<p>Preencha todas as perguntas e vá para o próximo passo.</p>
+<h3 id="Criando_o_bower-json__28opcional_29"><a href="#Criando_o_bower-json__28opcional_29" class="headerlink" title="Criando o bower.json (opcional)"></a>Criando o bower.json (opcional)</h3><p>Tão simples quanto criar o <strong>package.json</strong>, ainda sem sair da linha de comando, digite:</p>
+<pre class="lang:sh decode:true ">bower init</pre>
+
+<p>Preencha mais uma vez todas as perguntas.</p>
+<h3 id="Instalando_as_nossas_depend_EAncias_com_o_npm"><a href="#Instalando_as_nossas_depend_EAncias_com_o_npm" class="headerlink" title="Instalando as nossas dependências com o npm"></a>Instalando as nossas dependências com o npm</h3><p>Para fazer o servidor rodar nós precisaremos do express e nada mais. Então:</p>
+<pre class="lang:sh decode:true">npm install --save express</pre>
+
+<h3 id="Criando_um_arquivo_para_iniciar_o_servidor"><a href="#Criando_um_arquivo_para_iniciar_o_servidor" class="headerlink" title="Criando um arquivo para iniciar o servidor"></a>Criando um arquivo para iniciar o servidor</h3><p>Agora crie um arquivo para iniciar o servidor, no nosso exemplo o arquivo se chama <strong>server.js</strong>, importe o <strong>Express</strong> e crie a aplicação, dessa maneira:</p>
+<pre class="lang:js decode:true">var express = require('express');
+var app = express();
+
+var path = require('path');
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.listen(3000);</pre>
+
+<h4 id="Entendendo_o_c_F3digo"><a href="#Entendendo_o_c_F3digo" class="headerlink" title="Entendendo o código"></a>Entendendo o código</h4><p>Na primeira linha estamos pedindo a dependência <span class="lang:default decode:true  crayon-inline ">express</span> , na segunda linha estamos iniciando a aplicação, na quarta estamos pedindo a dependência <span class="lang:default decode:true  crayon-inline">path</span><strong> </strong>(que faz parte do núcleo do Node.js).</p>
+<h5 id="Linha_6"><a href="#Linha_6" class="headerlink" title="Linha 6"></a>Linha 6</h5><p>Antes precisamos entender para que servem o <span class="lang:js decode:true  crayon-inline ">app.use()</span>  e o <span class="lang:js decode:true  crayon-inline ">express.static()</span> :</p>
+<p>De acordo com a documentação do Express, o app.use() é utilizado para montagem de middlewares, se não definirmos nenhum caminho (<span class="lang:js decode:true  crayon-inline ">app.use(‘/someUrlHere’, some.Middleware())</span> ) antes de declararmos o middleware, que no caso é o <span class="lang:js decode:true  crayon-inline">express.static()</span>, por padrão ele será definido no caminho raiz, ou seja, quando determinamos a pasta <strong>public</strong> na linha 6, não estamos dizendo que aquela é a pasta pública e que ela vai conter o nosso site, estamos dizendo que quando o usuário entrar no caminho raiz do site, ele estará acessando a esta pasta também, OU SEJA, todos as pastas e arquivos dentro dela estarão disponíveis para o acesso diretamente do navegador.</p>
+<p>Já o <span class="lang:js decode:true  crayon-inline ">express.static</span> é baseado no <a href="https://github.com/expressjs/serve-static" target="_blank" rel="external">server-static</a> e serve simplesmente para prover o acesso em uma pasta e todos os seus arquivos.</p>
+<h5 id="DAltima_linha"><a href="#DAltima_linha" class="headerlink" title="Última linha"></a>Última linha</h5><p>Nesta linha, estamos apenas iniciando o servidor da aplicação.</p>
+<h3 id="Iniciando_o_servidor"><a href="#Iniciando_o_servidor" class="headerlink" title="Iniciando o servidor"></a>Iniciando o servidor</h3><p>Voltando novamente a linha de comando, digite:</p>
+<pre class="lang:sh decode:true">node server.js</pre>
+
+<h3 id="Dicas"><a href="#Dicas" class="headerlink" title="Dicas"></a>Dicas</h3><p>Você pode por outras pastas no caminho raiz do servidor web de sua aplicação para facilitar o acesso aos assets, como por exemplo, a pasta <span class="lang:default decode:true  crayon-inline ">bower_components</span> , você pode simplesmente digitar a seguinte linha após ou antes da linha 6 no nosso arquivo server.js:</p>
+<pre class="lang:js decode:true ">app.use('/lib', express.static(path.join(__dirname, 'bower_components')));</pre>
+
+<p>E pronto, a rota <strong>/lib </strong>proverá o acesso para todas pastas e arquivos da respectiva pasta, ou seja, ao invés de ter que copiar os arquivos para dentro da pasta <strong>public</strong>, você pode simplesmente, acessar <a href="http://localhost:3000/lib/angular/angular.min.js" target="_blank" rel="external">http://localhost:3000/lib/angular/angular.min.js</a> e vu alá, você tem acesso ao asset que procurava sem ter que fazer nada de muito complicado.</p>
+<p>Bom, espero que tenham gostado, até a próxima! :)</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://victorqueiroz.github.io/2014/09/16/node-js-criando-um-simples-servidor-web-com-express-4/" data-id="cijpi8pfv000bqt20tduvthgr" class="article-share-link">Share</a>
+      
+        <a href="http://victorqueiroz.github.io/2014/09/16/node-js-criando-um-simples-servidor-web-com-express-4/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Facil/">Fácil</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JavaScript/">JavaScript</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Node-js/">Node.js</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Servidor/">Servidor</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2014/09/16/gulp-js-um-automatizador-de-tarefas/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          gulp.js: Utilizando pela primeira vez
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2014/09/16/angularjs-diretivas-saiba-o-que-sao-e-como-elas-funcionam/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">AngularJS: Diretivas - Saiba o que são e como elas funcionam</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<section id="comments">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categorias</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/AngularJS/">AngularJS</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/AngularJS/Frameworks/">Frameworks</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/AngularJS/Frameworks/JavaScript/">JavaScript</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/AngularJS/Frameworks/JavaScript/Testes-unitarios/">Testes unitários</a><span class="category-list-count">1</span></li></ul></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Automatizadores-de-Tarefas/">Automatizadores de Tarefas</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Automatizadores-de-Tarefas/JavaScript/">JavaScript</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Debian/">Debian</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Debian/Linux/">Linux</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Debian/Linux/Sistemas-Operacionais/">Sistemas Operacionais</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Debian/Linux/Sistemas-Operacionais/Unix/">Unix</a><span class="category-list-count">1</span></li></ul></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Express/">Express</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Express/Frameworks/">Frameworks</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Express/Frameworks/Node-js/">Node.js</a><span class="category-list-count">1</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/JavaScript/">JavaScript</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/JavaScript/Testes-unitarios/">Testes unitários</a><span class="category-list-count">1</span></li></ul></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AngularJS/">AngularJS</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Broadcom/">Broadcom</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Configuracao/">Configuração</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Debian/">Debian</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Diretivas/">Diretivas</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Facil/">Fácil</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Google/">Google</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Grunt/">Grunt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Instalacao/">Instalação</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Jasmine/">Jasmine</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/">JavaScript</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kernel/">Kernel</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/">Linux</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Node-js/">Node.js</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Placa-de-rede/">Placa de rede</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Servidor/">Servidor</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Teste-de-unidade/">Teste de unidade</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Testes-unitarios/">Testes unitários</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ubuntu/">Ubuntu</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Wireless/">Wireless</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/directives/">directives</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/gridfs/">gridfs</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/gulp-js/">gulp.js</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/">images</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mongodb/">mongodb</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mongodb-node/">mongodb node</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/modulos/">módulos</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/specification/">specification</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/store/">store</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Artigos</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">Janeiro 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">Setembro 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">Novembro 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">Setembro 2014</a><span class="archive-list-count">7</span></li></ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2016 Victor Queiroz<br>
+      Criado com <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Artigos</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'victorqueirozg';
+  
+  var disqus_url = 'http://victorqueiroz.github.io/2014/09/16/node-js-criando-um-simples-servidor-web-com-express-4/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js" type="text/javascript"></script>
+
+
+<script src="/js/script.js" type="text/javascript"></script>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>AngularJS, Jasmine, Karma: Testando diretivas | Victor Queiroz</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="Se você ainda não teve a experiência de usar o ngMock com Jasmine, não sabe o que está perdendo, é tudo muito maravilhoso e poderoso. Continue lendo, vamos lá!">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AngularJS, Jasmine, Karma: Testando diretivas">
+<meta property="og:url" content="http://victorqueiroz.github.io/2014/09/25/angularjs-jasmine-karma-testando-diretivas/index.html">
+<meta property="og:site_name" content="Victor Queiroz">
+<meta property="og:description" content="Se você ainda não teve a experiência de usar o ngMock com Jasmine, não sabe o que está perdendo, é tudo muito maravilhoso e poderoso. Continue lendo, vamos lá!">
+<meta property="og:updated_time" content="2016-01-21T20:09:37.460Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="AngularJS, Jasmine, Karma: Testando diretivas">
+<meta name="twitter:description" content="Se você ainda não teve a experiência de usar o ngMock com Jasmine, não sabe o que está perdendo, é tudo muito maravilhoso e poderoso. Continue lendo, vamos lá!">
+  
+    <link rel="alternative" href="/atom.xml" title="Victor Queiroz" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+  
+
+</head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Victor Queiroz</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Artigos</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://victorqueiroz.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-angularjs-jasmine-karma-testando-diretivas" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2014/09/25/angularjs-jasmine-karma-testando-diretivas/" class="article-date">
+  <time datetime="2014-09-25T11:03:09.000Z" itemprop="datePublished">25-09-2014</time>
+</a>
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      AngularJS, Jasmine, Karma: Testando diretivas
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Se você ainda não teve a experiência de usar o ngMock com Jasmine, não sabe o que está perdendo, é tudo muito maravilhoso e poderoso. Continue lendo, vamos lá!</p>
+<a id="more"></a>
+<p>Como falei no final do artigo <a href="http://victorqueiroz.co/angularjs-criando-testes-com-jasmine-e-karma/" target="_blank" rel="external">AngularJS: Criando testes com Jasmine e Karma</a>, você pode usar o $injector do AngularJS para chamar em qualquer lugar tudo aquilo que precisamos para trabalhar com nossos módulos, neste guia nós utilizaremos as seguintes dependências:</p>
+<ul>
+<li>$injector</li>
+<li>$rootScope</li>
+<li>$compile</li>
+</ul>
+<h2 id="Importando_as_depend_EAncias"><a href="#Importando_as_depend_EAncias" class="headerlink" title="Importando as dependências"></a>Importando as dependências</h2><p>Vamos começar chamando as nossas dependências dentro do nosso teste:</p>
+<p><pre class="lang:js decode:true">describe(‘app module’, function () {<br>    var $compile, $rootScope;</pre></p>
+<pre><code>beforeEach(module(&apos;app&apos;));
+
+beforeEach(inject(function ($injector) {
+    $compile = $injector.get(&apos;$compile&apos;);
+    $rootScope = $injector.get(&apos;$rootScope&apos;);
+}));
+</code></pre><p>});<br>Logo acima importamos as dependências que serão reutilizadas pelas próximas suítes, agora vamos importar as dependências da nossa diretiva:</p>
+<p><pre class="lang:js decode:true">describe(‘app module’, function () {<br>    var $compile, $rootScope;</pre></p>
+<pre><code>beforeEach(module(&apos;app&apos;));
+
+beforeEach(inject(function ($injector) {
+    $compile = $injector.get(&apos;$compile&apos;);
+    $rootScope = $injector.get(&apos;$rootScope&apos;);
+}));
+
+describe(&apos;replacer directive&apos;, function () {
+    var element, scope, form;
+
+    beforeEach(inject(function ($injector) {
+        scope = $rootScope.$new();
+    }));
+});
+</code></pre><p>});<br>Agora precisamos compilar o nosso elemento dentro da suíte <span class="lang:js decode:true  crayon-inline ">replacer directive</span> , faremos da seguinte maneira:</p>
+<p><pre class="lang:js decode:true">    describe(‘replacer directive’, function () {<br>        var element, scope, form;</pre></p>
+<pre><code>    beforeEach(inject(function ($injector) {
+        scope = $rootScope.$new();
+        element = &apos;&amp;lt;form&amp;gt;&apos; + &apos;&amp;lt;input ng-model=&quot;text&quot; name=&quot;text&quot; replacer-directive&amp;gt;&apos; + &apos;&amp;lt;/form&amp;gt;&apos;;
+        element = angular.element(element);
+        element = $compile(element)(scope);
+    }));
+});&lt;/pre&gt;
+</code></pre><p>Agora você deve estar se perguntando:</p>
+<blockquote>
+<p>Como diabos eu vou pegar o meu input? Vou ter que fazer malabarismos com jQuery ou document.querySelector?<br><strong>Resposta: </strong>NÃO! Basta dar um valor para a única variável que ainda não definimos dentro da suíte <span class="lang:js decode:true  crayon-inline ">replacer directive</span> :</p>
+<p><pre class="lang:js mark:7 decode:true">beforeEach(inject(function ($injector) {<br>    scope = $rootScope.$new();<br>    element = ‘&lt;form&gt;’ + ‘&lt;input ng-model=”text” name=”text” replacer-directive&gt;’ + ‘&lt;/form&gt;’;<br>    element = angular.element(element);<br>    element = $compile(element)(scope);<br>        form = scope.form;<br>        scope.$digest();<br>}));</pre><br>Agora podemos acessar ao nosso input através da variável <span class="lang:js decode:true  crayon-inline ">form</span> , da seguinte forma:</p>
+<p><pre class="lang:js decode:true ">form.text</pre><br>Note que utilizamos um novo método na penúltima linha, o <span class="lang:js decode:true  crayon-inline ">scope.$digest()</span> , ele cuidará de atualizar o scope, todas as modificações que fizer no scope deve conter um <span class="lang:js decode:true  crayon-inline ">scope.$digest()</span> após para que todas as modificações sejam aplicadas ao DOM.</p>
+</blockquote>
+<p>Agora nós podemos fazer os nossos testes:</p>
+<p><pre class="lang:js decode:true">it(‘should replace 2 with 3’, function () {<br>  scope.text = 252;<br>  scope.$digest();</pre></p>
+<p>  expect(form.text).toBe(352);<br>});<br>A partir daí podemos ser felizes para sempre e testar as nossas diretivas de todas as maneiras possíveis para que tudo funcione exatamente como esperado.</p>
+<p>Como já sabem, deixem suas dúvidas nos comentários. Um abraço a todos e até a próxima!</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://victorqueiroz.github.io/2014/09/25/angularjs-jasmine-karma-testando-diretivas/" data-id="cijpi8pgn0024qt2030y1rv4d" class="article-share-link">Share</a>
+      
+        <a href="http://victorqueiroz.github.io/2014/09/25/angularjs-jasmine-karma-testando-diretivas/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AngularJS/">AngularJS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Diretivas/">Diretivas</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Jasmine/">Jasmine</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JavaScript/">JavaScript</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Teste-de-unidade/">Teste de unidade</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Testes-unitarios/">Testes unitários</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/directives/">directives</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2014/09/28/configurando-o-wi-fi-com-uma-broadcom-bcm4312-no-debian/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Configurando o Wi-Fi com uma Broadcom BCM4312 no Debian
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2014/09/18/angularjs-criando-testes-com-jasmine-e-karma/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">AngularJS: Criando testes com Jasmine e Karma</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<section id="comments">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categorias</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/AngularJS/">AngularJS</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/AngularJS/Frameworks/">Frameworks</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/AngularJS/Frameworks/JavaScript/">JavaScript</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/AngularJS/Frameworks/JavaScript/Testes-unitarios/">Testes unitários</a><span class="category-list-count">1</span></li></ul></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Automatizadores-de-Tarefas/">Automatizadores de Tarefas</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Automatizadores-de-Tarefas/JavaScript/">JavaScript</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Debian/">Debian</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Debian/Linux/">Linux</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Debian/Linux/Sistemas-Operacionais/">Sistemas Operacionais</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Debian/Linux/Sistemas-Operacionais/Unix/">Unix</a><span class="category-list-count">1</span></li></ul></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Express/">Express</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Express/Frameworks/">Frameworks</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Express/Frameworks/Node-js/">Node.js</a><span class="category-list-count">1</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/JavaScript/">JavaScript</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/JavaScript/Testes-unitarios/">Testes unitários</a><span class="category-list-count">1</span></li></ul></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AngularJS/">AngularJS</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Broadcom/">Broadcom</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Configuracao/">Configuração</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Debian/">Debian</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Diretivas/">Diretivas</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Facil/">Fácil</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Google/">Google</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Grunt/">Grunt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Instalacao/">Instalação</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Jasmine/">Jasmine</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/">JavaScript</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kernel/">Kernel</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/">Linux</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Node-js/">Node.js</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Placa-de-rede/">Placa de rede</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Servidor/">Servidor</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Teste-de-unidade/">Teste de unidade</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Testes-unitarios/">Testes unitários</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ubuntu/">Ubuntu</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Wireless/">Wireless</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/directives/">directives</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/gridfs/">gridfs</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/gulp-js/">gulp.js</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/">images</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mongodb/">mongodb</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mongodb-node/">mongodb node</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/modulos/">módulos</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/specification/">specification</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/store/">store</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Artigos</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">Janeiro 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">Setembro 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">Novembro 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">Setembro 2014</a><span class="archive-list-count">7</span></li></ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2016 Victor Queiroz<br>
+      Criado com <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Artigos</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'victorqueirozg';
+  
+  var disqus_url = 'http://victorqueiroz.github.io/2014/09/25/angularjs-jasmine-karma-testando-diretivas/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js" type="text/javascript"></script>
+
+
+<script src="/js/script.js" type="text/javascript"></script>
+
+  </div>
+</body>
+</html>
