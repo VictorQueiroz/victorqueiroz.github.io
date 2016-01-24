@@ -4,7 +4,7 @@
   
   <link href="/atom.xml" rel="self"/>
   <link href="http://victorqueiroz.github.io/"/>
-  <updated>2016-01-22T09:48:04.363Z</updated>
+  <updated>2016-01-24T06:24:55.661Z</updated>
   <id>http://victorqueiroz.github.io/</id>
   
   <author>
@@ -19,9 +19,9 @@
     <link href="http://victorqueiroz.github.io/2016/01/22/MongoDB-Como-utilizar-o-MongoDB-como-um-servidor-de-imagens/"/>
     <id>http://victorqueiroz.github.io/2016/01/22/MongoDB-Como-utilizar-o-MongoDB-como-um-servidor-de-imagens/</id>
     <published>2016-01-22T09:01:15.000Z</published>
-    <updated>2016-01-22T09:48:04.363Z</updated>
+    <updated>2016-01-24T06:24:55.661Z</updated>
     <content type="html"><![CDATA[<p>Primeiramente nós devemos saber que essa nem sempre pode ser a melhor alternativa, ainda podemos utilizar o serviço S3 da Amazon, este guia serve apenas como uma alternativa interessante a se pensar.</p>
-<p>Neste exemplo estaremos utilizando:</p>
+<p>Neste exemplo estaremos utilizando:<br><a id="more"></a></p>
 <ul>
 <li>Express 4.x</li>
 <li>NodeJS 5.x</li>
@@ -31,7 +31,7 @@
 <figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> fs = <span class="built_in">require</span>(<span class="string">'fs'</span>);</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">storeFileId</span> (<span class="params">fileId</span>) </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> db.collection(<span class="string">'images'</span>).insertOne(&#123; fileId: fileId &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">FileManager.uploadImage(fs.readFileSync(<span class="string">'./images/angularjs-vs-react-who-is-the-winner.jpg'</span>))</span><br><span class="line">.then(storeFileId);</span><br></pre></td></tr></table></figure>
 <h3 id="Criando_a_inst_E2ncia_do_GridStore"><a href="#Criando_a_inst_E2ncia_do_GridStore" class="headerlink" title="Criando a instância do GridStore"></a>Criando a instância do GridStore</h3><p>No primeiro parâmetro nós passamos a ligação para a conexão com o banco de dados (que você receberá logo após um <code>require(&#39;mongodb&#39;).MongoClient.connect()</code>), no segundo parâmetro nós definimos o nome do arquivo e por último nós definimos o que vamos fazer nesse documento, no nosso caso, vamos ler. Portanto <code>w</code> que vem de <code>write</code> :)</p>
 <h3 id="Gerando_o_nome_do_arquivo"><a href="#Gerando_o_nome_do_arquivo" class="headerlink" title="Gerando o nome do arquivo"></a>Gerando o nome do arquivo</h3><p>Você pode notar na <code>linha 13</code> do exemplo acima que o nome do arquivo que vamos guardar é criado pela função anônima na propriedade <code>nextFileId</code> do <code>FileManager</code>. Ele retorna algo como:</p>
-<figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">c<span class="number">9</span>R<span class="number">9</span>_B<span class="number">7</span>xgEVxQ_u<span class="number">7</span><span class="label">nOX9</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">c9R9_B7xgEVxQ_u7nCsX</span><br></pre></td></tr></table></figure>
 <p>É apenas para termos certeza de que nenhum arquivo fique com nomes iguais e que possamos colocar isso numa url sem que fique na cara que utilizamos MongoDB:</p>
 <figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http<span class="variable">s:</span>//api.dominio.<span class="keyword">com</span>.<span class="keyword">br</span>/images/c9R9_B7xgEVxQ_u7nOX9.png</span><br></pre></td></tr></table></figure>
 <p>Mas nada te impede de usar um <code>ObjectId</code>, we’re talking about Mongo, right? :)</p>
@@ -44,7 +44,9 @@
 <p>Espero que tenham gostado, deixem suas opiniões e dúvidas abaixo. Até a próxima.</p>
 ]]></content>
     <summary type="html">
-    <![CDATA[<p>Primeiramente nós devemos saber que essa nem sempre pode ser a melhor alternativa, ainda podemos utilizar o serviço S3 da Amazon, este gu]]>
+    <![CDATA[<p>Primeiramente nós devemos saber que essa nem sempre pode ser a melhor alternativa, ainda podemos utilizar o serviço S3 da Amazon, este guia serve apenas como uma alternativa interessante a se pensar.</p>
+<p>Neste exemplo estaremos utilizando:<br>]]>
+    
     </summary>
     
       <category term="gridfs" scheme="http://victorqueiroz.github.io/tags/gridfs/"/>

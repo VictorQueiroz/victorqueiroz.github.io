@@ -83,32 +83,16 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p>Primeiramente nós devemos saber que essa nem sempre pode ser a melhor alternativa, ainda podemos utilizar o serviço S3 da Amazon, este guia serve apenas como uma alternativa interessante a se pensar.</p>
-<p>Neste exemplo estaremos utilizando:</p>
-<ul>
-<li>Express 4.x</li>
-<li>NodeJS 5.x</li>
-</ul>
-<h2 id="Armazenando_a_imagem_no_banco"><a href="#Armazenando_a_imagem_no_banco" class="headerlink" title="Armazenando a imagem no banco"></a>Armazenando a imagem no banco</h2><p>No exemplo abaixo, nós temos um serviço que recebe a imagem em <code>base64</code>, transforma em binário e salva no banco:</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> GridStore = <span class="built_in">require</span>(<span class="string">'mongodb'</span>).GridStore;</span><br><span class="line"><span class="keyword">var</span> randomstring = <span class="built_in">require</span>(<span class="string">'randomstring'</span>).generate;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Expressão regular que será utilizada para remover</span></span><br><span class="line"><span class="comment">// o data:image/<span class="label">XXX que não faz de fato parte do código</span></span></span><br><span class="line"><span class="comment">// base64</span></span><br><span class="line"><span class="keyword">var</span> BASE64_REGEX = <span class="regexp">/^data:image\/png;base64,|^data:image\/jpeg;base64,|^data:image\/jpg;base64,|^data:image\/bmp;base64,/</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> FileManager = &#123;</span><br><span class="line">	nextFileId: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="string">`<span class="subst">$&#123;randomstring(4)&#125;</span>_<span class="subst">$&#123;randomstring(8)&#125;</span>_<span class="subst">$&#123;randomstring(6)&#125;</span>`</span>;</span><br><span class="line">	&#125;,</span><br><span class="line"></span><br><span class="line">	upload: <span class="function"><span class="keyword">function</span>(<span class="params">data, encoding, fileId</span>) </span>&#123;</span><br><span class="line">		fileId = fileId || <span class="keyword">this</span>.nextFileId();</span><br><span class="line"></span><br><span class="line">		<span class="keyword">var</span> buf = <span class="keyword">new</span> Buffer(data, encoding),</span><br><span class="line">				gridStore = <span class="keyword">new</span> GridStore(db, fileId, <span class="string">'w'</span>);</span><br><span class="line"></span><br><span class="line">		<span class="keyword">return</span> gridStore.open().then(<span class="function"><span class="keyword">function</span>(<span class="params">gridStore</span>) </span>&#123;</span><br><span class="line">			<span class="keyword">return</span> gridStore.write(buf);</span><br><span class="line">		&#125;)</span><br><span class="line">		.then(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">			<span class="keyword">return</span> gridStore.close();</span><br><span class="line">		&#125;)</span><br><span class="line">		.then(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">			<span class="keyword">return</span> fileId;</span><br><span class="line">		&#125;);</span><br><span class="line">	&#125;,</span><br><span class="line"></span><br><span class="line">	uploadImage: <span class="function"><span class="keyword">function</span>(<span class="params">data</span>) </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">this</span>.upload(data.replace(BASE64_REGEX), <span class="string">'base64'</span>);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> fs = <span class="built_in">require</span>(<span class="string">'fs'</span>);</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">storeFileId</span> (<span class="params">fileId</span>) </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> db.collection(<span class="string">'images'</span>).insertOne(&#123; fileId: fileId &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">FileManager.uploadImage(fs.readFileSync(<span class="string">'./images/angularjs-vs-react-who-is-the-winner.jpg'</span>))</span><br><span class="line">.then(storeFileId);</span><br></pre></td></tr></table></figure>
-<h3 id="Criando_a_inst_E2ncia_do_GridStore"><a href="#Criando_a_inst_E2ncia_do_GridStore" class="headerlink" title="Criando a instância do GridStore"></a>Criando a instância do GridStore</h3><p>No primeiro parâmetro nós passamos a ligação para a conexão com o banco de dados (que você receberá logo após um <code>require(&#39;mongodb&#39;).MongoClient.connect()</code>), no segundo parâmetro nós definimos o nome do arquivo e por último nós definimos o que vamos fazer nesse documento, no nosso caso, vamos ler. Portanto <code>w</code> que vem de <code>write</code> :)</p>
-<h3 id="Gerando_o_nome_do_arquivo"><a href="#Gerando_o_nome_do_arquivo" class="headerlink" title="Gerando o nome do arquivo"></a>Gerando o nome do arquivo</h3><p>Você pode notar na <code>linha 13</code> do exemplo acima que o nome do arquivo que vamos guardar é criado pela função anônima na propriedade <code>nextFileId</code> do <code>FileManager</code>. Ele retorna algo como:</p>
-<figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">c<span class="number">9</span>R<span class="number">9</span>_B<span class="number">7</span>xgEVxQ_u<span class="number">7</span><span class="label">nOX9</span></span><br></pre></td></tr></table></figure>
-<p>É apenas para termos certeza de que nenhum arquivo fique com nomes iguais e que possamos colocar isso numa url sem que fique na cara que utilizamos MongoDB:</p>
-<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http<span class="variable">s:</span>//api.dominio.<span class="keyword">com</span>.<span class="keyword">br</span>/images/c9R9_B7xgEVxQ_u7nOX9.png</span><br></pre></td></tr></table></figure>
-<p>Mas nada te impede de usar um <code>ObjectId</code>, we’re talking about Mongo, right? :)</p>
-<h3 id="Escrevendo_no_arquivo"><a href="#Escrevendo_no_arquivo" class="headerlink" title="Escrevendo no arquivo"></a>Escrevendo no arquivo</h3><p>Na <code>linha 19</code> nós armazenamos os dados da imagem na instância, mas caso você não execute o <code>gridStore.close()</code> como na <code>linha 22</code>, ele não será salvo no banco e ficará apenas na instância. Então é sempre importante executar um <code>gridStore.close()</code> após o <code>gridStore.write()</code>. O parâmetro que colocamos em <code>write()</code> pode ser um <code>Buffer</code> ou uma <code>String</code></p>
-<h2 id="Lendo_a_imagem_previamente_armazenada"><a href="#Lendo_a_imagem_previamente_armazenada" class="headerlink" title="Lendo a imagem previamente armazenada"></a>Lendo a imagem previamente armazenada</h2><p>Para acessarmos a imagem que salvamos, vamos precisar de utilizar novamente a classe GridStore, só que dessa vez não precisaremos criar outra instância, mas definitivamente vamos precisar do id do arquivo que armazenamos, portanto é importante que você saiba que é necessário guardar a identificação do arquivo para que você possa acessá-la futuramente.</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> Q = <span class="built_in">require</span>(<span class="string">'q'</span>),</span><br><span class="line">		GridStore = <span class="built_in">require</span>(<span class="string">'mongodb'</span>).GridStore;</span><br><span class="line"></span><br><span class="line">FileManager.get = <span class="function"><span class="keyword">function</span>(<span class="params">id</span>) </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> GridStore.exists(db, id).then(<span class="function"><span class="keyword">function</span>(<span class="params">result</span>) </span>&#123;</span><br><span class="line">		<span class="keyword">if</span>(result) &#123;</span><br><span class="line">			<span class="keyword">return</span> GridStore.read(db, id);</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">return</span> Q.reject(<span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'File does not exists'</span>));</span><br><span class="line">	&#125;);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AlbumController</span> </span>&#123;</span><br><span class="line">	getUserAlbum(req) &#123;</span><br><span class="line">		<span class="keyword">return</span> db.collection(<span class="string">'users'</span>).findOne(&#123;</span><br><span class="line">			_id: ObjectId(req.params.userId)</span><br><span class="line">		&#125;)</span><br><span class="line">		.then(<span class="function"><span class="keyword">function</span>(<span class="params">user</span>) </span>&#123;</span><br><span class="line">			<span class="keyword">var</span> userId = user._id.toString();</span><br><span class="line"></span><br><span class="line">			<span class="keyword">return</span> db.collection(<span class="string">'albums'</span>).findOne(&#123; userId: userId &#125;);</span><br><span class="line">		&#125;)</span><br><span class="line">		.then(<span class="function"><span class="keyword">function</span>(<span class="params">album</span>) </span>&#123;</span><br><span class="line">			<span class="keyword">return</span> albums &amp;&amp; album.images &amp;&amp; Q.all(album.images.forEach(<span class="function"><span class="keyword">function</span>(<span class="params">image</span>) </span>&#123;</span><br><span class="line">				<span class="keyword">return</span> FileManager.get(image.fileId);</span><br><span class="line">			&#125;));</span><br><span class="line">		&#125;);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="Criando_um_endpoint"><a href="#Criando_um_endpoint" class="headerlink" title="Criando um endpoint"></a>Criando um endpoint</h2><p>Eu acredito que essa seja a parte mais simples de tudo: Criar um endpoint em que você possa requisitar a sua imagem apartir do seu site.</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> EXT_REMOVE_REGEX = <span class="regexp">/\.([A-z]+)$/</span>;</span><br><span class="line"></span><br><span class="line">app.get(<span class="string">'images/:imageId'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">req, res</span>) </span>&#123;</span><br><span class="line">	<span class="keyword">var</span> ext, filename = req.params.id;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Vamos remover a extensão do arquivo, caso você tenha</span></span><br><span class="line">	<span class="comment">// digitado algo como "Z97d_KLEJAcVI_kII2tZ.png" ou</span></span><br><span class="line">	<span class="comment">// "Z97d_KLEJAcVI_kII2tZ.jpg"</span></span><br><span class="line">	filename = filename.replace(EXT_REMOVE_REGEX, <span class="function"><span class="keyword">function</span>(<span class="params">raw, $ext, index, filename</span>) </span>&#123;</span><br><span class="line">		ext = $ext;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">return</span> <span class="string">''</span>;</span><br><span class="line">	&#125;);</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Vamos preencher esta variável para futuramente podermos</span></span><br><span class="line">	<span class="comment">// reutilizar quando formos escrever o cabeçalho da resposta.</span></span><br><span class="line">	ext = ext || <span class="string">'png'</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> FileManager.get(filename).then(<span class="function"><span class="keyword">function</span>(<span class="params">buf</span>) </span>&#123;</span><br><span class="line">		<span class="comment">// Escrevendo no cabeçalho com a nova imagem e o tamanho</span></span><br><span class="line">		<span class="comment">// do buffer.</span></span><br><span class="line">		res.writeHead(<span class="number">200</span>, &#123;</span><br><span class="line">			<span class="string">'Content-Type'</span>: <span class="string">'image/'</span> + ext,</span><br><span class="line">			<span class="string">'Content-Length'</span>: buffer.length</span><br><span class="line">		&#125;);</span><br><span class="line">	</span><br><span class="line"></span><br><span class="line">		<span class="comment">// Respondendo a requisição com os dados da imagem, que</span></span><br><span class="line">		<span class="comment">// deverá ser carregada normalmente pelo seu navegador.</span></span><br><span class="line">		res.end(buf, <span class="string">'binary'</span>);</span><br><span class="line">	&#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
-<p>Espero que tenham gostado, deixem suas opiniões e dúvidas abaixo. Até a próxima.</p>
-
+<p>Neste exemplo estaremos utilizando:<br>
+        
+          <p class="article-more-link">
+            <a href="/2016/01/22/MongoDB-Como-utilizar-o-MongoDB-como-um-servidor-de-imagens/#more">Leia Mais</a>
+          </p>
+        
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://victorqueiroz.github.io/2016/01/22/MongoDB-Como-utilizar-o-MongoDB-como-um-servidor-de-imagens/" data-id="cijpi8pfb0000qt201rg3msqp" class="article-share-link">Share</a>
+      <a data-url="http://victorqueiroz.github.io/2016/01/22/MongoDB-Como-utilizar-o-MongoDB-como-um-servidor-de-imagens/" data-id="cijs5w0hr0000nw20ivy4jsco" class="article-share-link">Share</a>
       
         <a href="http://victorqueiroz.github.io/2016/01/22/MongoDB-Como-utilizar-o-MongoDB-como-um-servidor-de-imagens/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -153,7 +137,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://victorqueiroz.github.io/2015/09/06/MongoDB-Pesquisa-em-raios-de-distancia-com-coordenadas-usando-o-geoWithin-e-centerSphere/" data-id="cijpi8ph50039qt204b9t0zfl" class="article-share-link">Share</a>
+      <a data-url="http://victorqueiroz.github.io/2015/09/06/MongoDB-Pesquisa-em-raios-de-distancia-com-coordenadas-usando-o-geoWithin-e-centerSphere/" data-id="cijs5w0ji0039nw20iq91bwfh" class="article-share-link">Share</a>
       
         <a href="http://victorqueiroz.github.io/2015/09/06/MongoDB-Pesquisa-em-raios-de-distancia-com-coordenadas-usando-o-geoWithin-e-centerSphere/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -197,7 +181,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://victorqueiroz.github.io/2014/11/02/angularjs-1-3-conhecendo-os-validadores-assincronos/" data-id="cijpi8ph20033qt20yon7ae3s" class="article-share-link">Share</a>
+      <a data-url="http://victorqueiroz.github.io/2014/11/02/angularjs-1-3-conhecendo-os-validadores-assincronos/" data-id="cijs5w0jf0033nw20ywzsf4uh" class="article-share-link">Share</a>
       
         <a href="http://victorqueiroz.github.io/2014/11/02/angularjs-1-3-conhecendo-os-validadores-assincronos/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -241,7 +225,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://victorqueiroz.github.io/2014/09/28/configurando-o-wi-fi-com-uma-broadcom-bcm4312-no-debian/" data-id="cijpi8pgf001bqt202ixdvft1" class="article-share-link">Share</a>
+      <a data-url="http://victorqueiroz.github.io/2014/09/28/configurando-o-wi-fi-com-uma-broadcom-bcm4312-no-debian/" data-id="cijs5w0iq001bnw2083j3wtai" class="article-share-link">Share</a>
       
         <a href="http://victorqueiroz.github.io/2014/09/28/configurando-o-wi-fi-com-uma-broadcom-bcm4312-no-debian/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -285,7 +269,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://victorqueiroz.github.io/2014/09/25/angularjs-jasmine-karma-testando-diretivas/" data-id="cijpi8pgn0024qt2030y1rv4d" class="article-share-link">Share</a>
+      <a data-url="http://victorqueiroz.github.io/2014/09/25/angularjs-jasmine-karma-testando-diretivas/" data-id="cijs5w0j00024nw20c20l3q11" class="article-share-link">Share</a>
       
         <a href="http://victorqueiroz.github.io/2014/09/25/angularjs-jasmine-karma-testando-diretivas/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -331,7 +315,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://victorqueiroz.github.io/2014/09/18/angularjs-criando-testes-com-jasmine-e-karma/" data-id="cijpi8pgz002wqt203dnbcdq9" class="article-share-link">Share</a>
+      <a data-url="http://victorqueiroz.github.io/2014/09/18/angularjs-criando-testes-com-jasmine-e-karma/" data-id="cijs5w0jc002wnw20za7zi405" class="article-share-link">Share</a>
       
         <a href="http://victorqueiroz.github.io/2014/09/18/angularjs-criando-testes-com-jasmine-e-karma/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -375,7 +359,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://victorqueiroz.github.io/2014/09/17/jasmine-primeiro-contato-com-testes-unitarios/" data-id="cijpi8pg2000qqt20usmb8dtx" class="article-share-link">Share</a>
+      <a data-url="http://victorqueiroz.github.io/2014/09/17/jasmine-primeiro-contato-com-testes-unitarios/" data-id="cijs5w0ie000qnw20iccdsu57" class="article-share-link">Share</a>
       
         <a href="http://victorqueiroz.github.io/2014/09/17/jasmine-primeiro-contato-com-testes-unitarios/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -419,7 +403,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://victorqueiroz.github.io/2014/09/16/gulp-js-um-automatizador-de-tarefas/" data-id="cijpi8pga0012qt20g79aex4h" class="article-share-link">Share</a>
+      <a data-url="http://victorqueiroz.github.io/2014/09/16/gulp-js-um-automatizador-de-tarefas/" data-id="cijs5w0il0012nw20jqb4t66p" class="article-share-link">Share</a>
       
         <a href="http://victorqueiroz.github.io/2014/09/16/gulp-js-um-automatizador-de-tarefas/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -469,7 +453,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://victorqueiroz.github.io/2014/09/16/node-js-criando-um-simples-servidor-web-com-express-4/" data-id="cijpi8pfv000bqt20tduvthgr" class="article-share-link">Share</a>
+      <a data-url="http://victorqueiroz.github.io/2014/09/16/node-js-criando-um-simples-servidor-web-com-express-4/" data-id="cijs5w0i7000bnw20z93lks5u" class="article-share-link">Share</a>
       
         <a href="http://victorqueiroz.github.io/2014/09/16/node-js-criando-um-simples-servidor-web-com-express-4/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -513,7 +497,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://victorqueiroz.github.io/2014/09/16/angularjs-diretivas-saiba-o-que-sao-e-como-elas-funcionam/" data-id="cijpi8pgv002nqt20fdze0lzv" class="article-share-link">Share</a>
+      <a data-url="http://victorqueiroz.github.io/2014/09/16/angularjs-diretivas-saiba-o-que-sao-e-como-elas-funcionam/" data-id="cijs5w0j8002nnw20bp5o5ii7" class="article-share-link">Share</a>
       
         <a href="http://victorqueiroz.github.io/2014/09/16/angularjs-diretivas-saiba-o-que-sao-e-como-elas-funcionam/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -581,15 +565,24 @@
 </nav>
     
 <script>
-  var disqus_shortname = 'victorqueirozg';
-  
-  (function(){
-    var dsq = document.createElement('script');
-    dsq.type = 'text/javascript';
-    dsq.async = true;
-    dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-  })();
+/**
+* RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+* LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables
+*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL; // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+
+s.src = '//victorqueiroz.disqus.com/embed.js';
+
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
 </script>
 
 
